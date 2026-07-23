@@ -23,13 +23,15 @@ else:
 
 # 3. GESTIÓN DEL ESTADO DE SESIÓN (Enrutador Lógico)
 if "current_module" not in st.session_state:
-    st.session_state.current_module = "Módulo 1"
+    st.session_state.current_module = "Módulo 1: Diseño"
 if "tipo_conversacion" not in st.session_state:
     st.session_state.tipo_conversacion = "No definido"
 if "messages_mod1" not in st.session_state:
     st.session_state.messages_mod1 = []
 if "messages_mod2" not in st.session_state:
     st.session_state.messages_mod2 = []
+if "ejercicio_actual" not in st.session_state:
+    st.session_state.ejercicio_actual = "Aprender a fundar juicios"
 
 # 4. DEFINICIÓN DE LOS SYSTEM PROMPTS MAESTROS
 
@@ -58,23 +60,44 @@ PASO 5: DISEÑO GUIADO (Iterativo). Guía la construcción de la estructura pidi
 PASO 6: FEEDBACK FINAL. Revisa de forma integral lo que el usuario construyó, asegurándote de que no haya juicios disfrazados de preguntas, y felicítalo por el diseño.
 """
 
-PROMPT_MODULO_2 = """
-Eres "OntoAI", un Coach Ontológico Experto. Estás a cargo del Módulo 2: Autodesarrollo. 
-
+# PROMPTS ESPECÍFICOS PARA EL MÓDULO 2
+REGLAS_COMUNES_MOD2 = """
 REGLAS DE ORO: 
 1. Sistema interactivo estrictamente secuencial. NO pases al siguiente paso hasta que el usuario complete el actual. UNA sola intervención por turno.
-2. TONO HUMANO Y NATURAL: EVITA ABSOLUTAMENTE el tono mecánico. NO repitas frases cliché como "Entiendo cómo te sientes" o "Comprendo tu punto". Sé conversacional, profesional y directo.
+2. TONO HUMANO Y NATURAL: EVITA ABSOLUTAMENTE el tono mecánico. NO repitas frases cliché como "Entiendo cómo te sientes" o "Comprendo tu punto". Sé conversacional, profesional, incisivo y directo. NUNCA resuelvas el ejercicio por el usuario.
+"""
 
-PROTOCOLO DE SEGURIDAD:
-Si en el Paso 5 el usuario indica una intensidad emocional > 6.5, DETÉN el proceso: "Percibo una intensidad emocional alta que puede comprometer el resultado. Pausamos el diseño aquí. Te sugiero respiración consciente, revisar corporalidad, o solicitar asistencia a tu coach."
-
+PROMPT_MOD2_JUICIOS = f"""
+Eres "OntoAI", un Coach Ontológico Experto facilitando el ejercicio "Aprender a fundar juicios".
+{REGLAS_COMUNES_MOD2}
 SECUENCIA OBLIGATORIA:
-PASO 1: VACIADO MENTAL. Pídele 3 juicios positivos y 3 negativos cortos sobre la persona/situación. Espera.
-PASO 2: SELECCIÓN ESTRATÉGICA. Pídele que elija 1 positivo y 1 negativo críticos. Espera.
-PASO 3: FUNDAMENTACIÓN. Toma el negativo y haz las 5 preguntas (Propósito, Estándar, Dominio, 3 Hechos, Juicio contrario) de a UNA por vez. Luego repite con el positivo.
-PASO 4: TAMIZ DEL DECÁLOGO. Evalúa si violó reglas (Etiquetado, Generalización, Adscripción de intenciones). Si hay error, hazlo notar empáticamente. Si no, avanza.
-PASO 5: TERMÓMETRO EMOCIONAL. Pídele que nombre su emoción actual y la califique del 1 al 10. Evalúa con el umbral 6.5.
-PASO 6: CIERRE. Si <= 6.5, indícale que su dominio es óptimo y puede exportar el resumen.
+PASO 1: REVISIÓN DE JUICIOS Y OPINIONES. El usuario debe ingresar 3 juicios positivos y 3 negativos. Si falta alguno, pídeselo.
+PASO 2: SELECCIÓN ESTRATÉGICA. Pídele que elija 1 positivo y 1 negativo críticos para trabajar. Espera.
+PASO 3: FUNDAMENTACIÓN (Uno por uno). Toma el juicio negativo y pregúntale: A) ¿Con qué propósito emites este juicio? B) ¿Cuál es el estándar de comparación? C) ¿En qué dominio particular aplica? D) Dime 3 afirmaciones/hechos concretos que lo respalden. E) ¿Puedes encontrar al menos un hecho que funde el juicio contrario? Hazlo secuencial.
+PASO 4: TAMIZ DEL DECÁLOGO. Evalúa si en sus hechos introdujo nuevos juicios, etiquetas o generalizaciones (siempre/nunca). Corrige amablemente si es así.
+PASO 5: CIERRE Y APRENDIZAJE. Pregúntale qué se lleva de este ejercicio y cómo cambia su perspectiva sobre la persona o situación.
+"""
+
+PROMPT_MOD2_FEEDBACK = f"""
+Eres "OntoAI", un Coach Ontológico Experto facilitando el ejercicio "Preparar dar y recibir feedback".
+{REGLAS_COMUNES_MOD2}
+SECUENCIA OBLIGATORIA:
+PASO 1: CONTEXTO. Identifica si el usuario va a dar o recibir feedback y sobre qué tema central. Espera respuesta.
+PASO 2: HECHOS VS INTERPRETACIONES. Pídele que describa la situación basándose EXCLUSIVAMENTE en hechos comprobables (como si lo grabara una cámara de seguridad), sin usar adjetivos ni interpretaciones. Si usa juicios, pídele que lo reescriba.
+PASO 3: IMPACTO. Pregúntale qué impacto (operativo y emocional) tuvieron esos hechos en él o en el equipo.
+PASO 4: REDISEÑO DEL FUTURO. Pídele que formule el "Pedido" u "Oferta" concreta que va a realizar en la conversación para cambiar la situación a futuro.
+PASO 5: ROLEPLAY BREVE. Pídele que escriba la frase exacta con la que abriría la conversación de feedback uniendo Hechos + Impacto + Pedido, y dale una corrección final si suena acusatoria.
+"""
+
+PROMPT_MOD2_EMOCIONES = f"""
+Eres "OntoAI", un Coach Ontológico Experto facilitando el ejercicio "Aprender a distinguir emociones".
+{REGLAS_COMUNES_MOD2}
+SECUENCIA OBLIGATORIA:
+PASO 1: RECONOCIMIENTO Y ESCALA. Verifica qué emoción trajo el usuario y pídele que asigne un nivel de intensidad del 1 al 10. Si es > 8, sugiere cautela y respiración.
+PASO 2: EL EVENTO DISPARADOR. Pídele que describa el evento fáctico puntual (el "qué pasó") que detonó esta emoción, separado de su interpretación.
+PASO 3: LA NARRATIVA (EL CUENTO). Pregúntale: "¿Qué historia te estás contando a ti mismo sobre ese hecho? ¿Qué significa para ti que eso haya pasado?". 
+PASO 4: PREDISPOSICIÓN A LA ACCIÓN. Toda emoción nos predispone a actuar. Pregúntale: "Desde esta emoción, ¿qué tienes ganas de hacer o dejar de hacer?".
+PASO 5: RECONSTRUCCIÓN LINGÜÍSTICA. Pídele que intente cambiar el juicio del Paso 3 por una interpretación más compasiva o funcional, y pregúntale: "Si creyeras esta nueva historia, ¿qué emoción aparecería en lugar de la original?".
 """
 
 # 5. BARRA LATERAL (NAVEGACIÓN)
@@ -84,13 +107,12 @@ with st.sidebar:
     
     st.divider()
     st.markdown("**Panel de Control Temporal (Admin)**")
-    # Este selector manual simula la detección de la IA para cambiar el decálogo
     st.session_state.tipo_conversacion = st.selectbox(
         "Tipo de Conversación Definida:", 
         ["No definido", "Conversación de Juicios", "Coordinación de Acciones", "Posibles Acciones", "Posibles Conversaciones", "Relaciones"]
     )
     
-    if st.button("Reiniciar Sesión"):
+    if st.button("Reiniciar Sesión Total"):
         st.session_state.messages_mod1 = []
         st.session_state.messages_mod2 = []
         st.rerun()
@@ -99,18 +121,15 @@ with st.sidebar:
 if st.session_state.current_module == "Módulo 1: Diseño":
     st.header("Módulo 1: Diseño de la Conversación")
     
-    # Inicializar prompt de sistema si el chat está vacío
     if not st.session_state.messages_mod1:
         st.session_state.messages_mod1.append({"role": "system", "content": PROMPT_MODULO_1})
         st.session_state.messages_mod1.append({"role": "assistant", "content": "¡Hola! Soy tu coach de OntoAI. Para comenzar a diseñar nuestra conversación, ¿con quién necesitas hablar y qué situación puntual generó esta necesidad?"})
 
-    # Mostrar historial (omitiendo el system prompt)
     for msg in st.session_state.messages_mod1:
         if msg["role"] != "system":
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
 
-    # Input del usuario
     if prompt := st.chat_input("Escribe tu respuesta aquí..."):
         st.session_state.messages_mod1.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
@@ -119,7 +138,6 @@ if st.session_state.current_module == "Módulo 1: Diseño":
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
             full_response = ""
-            # Llamada a la API de OpenAI
             for response in client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages_mod1],
@@ -132,30 +150,52 @@ if st.session_state.current_module == "Módulo 1: Diseño":
 
 # 7. INTERFAZ MÓDULO 2: AUTODESARROLLO
 elif st.session_state.current_module == "Módulo 2: Autodesarrollo":
-    st.header("Módulo 2: Preparación y Autodesarrollo")
+    st.header("Módulo 2: Gimnasio de Habilidades Socioemocionales")
     
-    # Lógica de inyección del decálogo correcto
-    decalogo_contexto = ""
-    if st.session_state.tipo_conversacion in ["Conversación de Juicios", "Coordinación de Acciones"]:
-        decalogo_contexto = "REGLA ADICIONAL: Utiliza los principios del DECÁLOGO PARA ENTREGAR JUICIOS."
-    elif st.session_state.tipo_conversacion in ["Posibles Acciones", "Posibles Conversaciones", "Relaciones"]:
-        decalogo_contexto = "REGLA ADICIONAL: Utiliza los principios del DECÁLOGO PARA RECIBIR JUICIOS."
+    # Selector de ejercicios
+    ejercicio_seleccionado = st.selectbox(
+        "Selecciona la habilidad que deseas entrenar:",
+        [
+            "Aprender a fundar juicios",
+            "Preparar dar y recibir feedback",
+            "Aprender a distinguir emociones"
+        ]
+    )
 
-    prompt_dinamico_mod2 = PROMPT_MODULO_2 + "\n" + decalogo_contexto
+    # Detectar cambio en el menú desplegable para reiniciar solo el chat del Módulo 2
+    if st.session_state.ejercicio_actual != ejercicio_seleccionado:
+        st.session_state.ejercicio_actual = ejercicio_seleccionado
+        st.session_state.messages_mod2 = []  # Vacía el chat para cargar el nuevo prompt
+        st.rerun()
 
-    # Inicializar prompt de sistema si el chat está vacío
+    # Inicializar prompt de sistema según el ejercicio elegido
     if not st.session_state.messages_mod2:
-        st.session_state.messages_mod2.append({"role": "system", "content": prompt_dinamico_mod2})
-        st.session_state.messages_mod2.append({"role": "assistant", "content": "Bienvenido al espacio de autodesarrollo. Para empezar nuestro vaciado mental, por favor escribe 3 juicios positivos y 3 juicios negativos (frases cortas) sobre la persona o situación."})
+        prompt_dinamico = ""
+        mensaje_bienvenida = ""
 
-    # Mostrar historial
+        if ejercicio_seleccionado == "Aprender a fundar juicios":
+            prompt_dinamico = PROMPT_MOD2_JUICIOS
+            mensaje_bienvenida = "Bienvenido al ejercicio de fundamentación. Para empezar nuestra revisión de juicios y opiniones, por favor escribe 3 juicios positivos y 3 juicios negativos sobre la persona o situación que te ocupa."
+        
+        elif ejercicio_seleccionado == "Preparar dar y recibir feedback":
+            prompt_dinamico = PROMPT_MOD2_FEEDBACK
+            mensaje_bienvenida = "Bienvenido al ejercicio de Feedback. Para iniciar, cuéntame: ¿te estás preparando para dar feedback a alguien, o para recibirlo? ¿Y sobre qué tema puntual?"
+        
+        elif ejercicio_seleccionado == "Aprender a distinguir emociones":
+            prompt_dinamico = PROMPT_MOD2_EMOCIONES
+            mensaje_bienvenida = "Bienvenido al espacio de exploración emocional. Para comenzar, ¿qué emoción principal estás sintiendo o percibiendo en este momento y con qué intensidad del 1 al 10?"
+
+        st.session_state.messages_mod2.append({"role": "system", "content": prompt_dinamico})
+        st.session_state.messages_mod2.append({"role": "assistant", "content": mensaje_bienvenida})
+
+    # Mostrar historial del Módulo 2
     for msg in st.session_state.messages_mod2:
         if msg["role"] != "system":
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
 
     # Input del usuario
-    if prompt := st.chat_input("Escribe tus juicios aquí..."):
+    if prompt := st.chat_input("Escribe tu respuesta aquí..."):
         st.session_state.messages_mod2.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
