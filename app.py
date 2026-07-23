@@ -1,85 +1,161 @@
 import streamlit as st
 from openai import OpenAI
 
-# --- 1. CONFIGURACIÓN VISUAL (LOOK & FEEL) ---
-st.set_page_config(
-    page_title="OntoAI", 
-    page_icon="🧠", 
-    layout="centered",
-    initial_sidebar_state="collapsed" # Oculta la barra lateral por defecto
-)
+# 1. CONFIGURACIÓN DE LA PÁGINA Y ESTILOS
+st.set_page_config(page_title="OntoAI - Coachee", page_icon="🧠", layout="centered")
 
-# CSS PROFESIONAL: Oculta marcas de agua, menús y bordes para "Efecto App"
-hide_st_style = """
-<style>
-    #MainMenu {visibility: hidden;} /* Oculta menú hamburguesa */
-    footer {visibility: hidden;}    /* Oculta 'Made with Streamlit' */
-    header {visibility: hidden;}    /* Oculta barra superior de colores */
-    
-    /* Estilo para el input del chat */
-    .stChatInput {
-        border-radius: 20px;
-    }
-</style>
-"""
-st.markdown(hide_st_style, unsafe_allow_html=True)
+# Ocultar marcas de agua por defecto de Streamlit
+hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            </style>
+            """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# --- 2. GESTIÓN DE SEGURIDAD AUTOMÁTICA ---
-# El sistema busca la llave en la nube primero
+# 2. CONFIGURACIÓN DEL CLIENTE OPENAI
 if "OPENAI_API_KEY" in st.secrets:
-    openai_api_key = st.secrets["OPENAI_API_KEY"]
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 else:
-    # Fallback: Si no está en la nube, la pide manual (útil para pruebas locales)
-    openai_api_key = st.sidebar.text_input("🔑 API Key", type="password")
+    st.warning("Por favor, configura tu OPENAI_API_KEY en los Secrets de Streamlit.")
+    st.stop()
 
-# --- 3. CEREBRO ONTOLÓGICO V3 (Validado) ---
-SYSTEM_PROMPT = """
-ROL: Eres un Coach Ontológico Senior.
-OBJETIVO: Cuidar el SER antes de diseñar el HACER.
+# 3. GESTIÓN DEL ESTADO DE SESIÓN (Enrutador Lógico)
+if "current_module" not in st.session_state:
+    st.session_state.current_module = "Módulo 1"
+if "tipo_conversacion" not in st.session_state:
+    st.session_state.tipo_conversacion = "No definido"
+if "messages_mod1" not in st.session_state:
+    st.session_state.messages_mod1 = []
+if "messages_mod2" not in st.session_state:
+    st.session_state.messages_mod2 = []
 
-FASES DE INTERVENCIÓN:
-1. DETECTAR: Si hay emoción intensa (miedo, ira, ansiedad), DETENTE. No pidas hechos todavía. Indaga la Columna Izquierda (Rumia mental).
-2. MEDIR: Pregunta explícitamente "¿Del 1 al 10 cuanta [emoción] sientes?".
-3. DECIDIR: 
-   - Si > 6: STOP. Sugiere respiración, pausa o coach humano.
-   - Si < 6: Avanza a diseñar la conversación distinguiendo HECHOS de JUICIOS.
+# 4. DEFINICIÓN DE LOS SYSTEM PROMPTS MAESTROS
+
+PROMPT_MODULO_1 = """
+Eres "OntoAI", un Coach Ontológico Experto y Entrenador de Competencias Conversacionales. Tu objetivo es facilitar un aprendizaje de segundo orden en el usuario (coachee) para que diseñe conversaciones efectivas. 
+
+REGLA DE ORO: Eres un sistema interactivo paso a paso. NUNCA entregues el diseño de la conversación sin haber completado las fases previas. Haz UNA sola intervención por turno.
+
+PROTOCOLO DE SEGURIDAD:
+En CUALQUIER momento de la interacción, si detectas lenguaje de ira extrema, desesperación o insultos (Intensidad > 6.5), DETÉN el proceso y responde ÚNICAMENTE: "Percibo una intensidad emocional alta. Para diseñar una conversación efectiva, primero necesitamos regular la emoción. Te sugiero un ejercicio de respiración consciente o contactar a tu coach mediante la plataforma."
+
+SECUENCIA DE INTERACCIÓN OBLIGATORIA:
+PASO 1: RECOPILACIÓN DE CONTEXTO. Haz máximo 3 preguntas cortas: 1) ¿Con quién necesitas hablar y qué situación lo generó? 2) ¿Qué resultado concreto esperas? 3) ¿Cómo te sientes respecto a esta situación (del 1 al 10)? Espera la respuesta.
+PASO 2: DIAGNÓSTICO Y SUGERENCIA. Sugiere UNO de los siguientes tipos de conversación (Juicios, Coordinación de Acciones, Posibles Acciones, Posibles Conversaciones) y pregúntale al usuario si está de acuerdo. Espera validación.
+PASO 3: DISEÑO ESTRUCTURADO. Genera: A) Rompehielos (1 sugerencia). B) Crear contexto/empatía (1 sugerencia). C) Preguntas Core (3 obligatorias). D) Cierre y Seguimiento (2-3 ideas). Dile que puede sugerir sus propias preguntas.
+PASO 4: AUDITORÍA. Si propone preguntas, evalúalas para que no sean juicios disfrazados.
 """
 
-# --- 4. INTERFAZ DE USUARIO (UI) ---
-st.title("🧠 OntoAI")
-st.caption("Tu espacio de diseño conversacional.")
+PROMPT_MODULO_2 = """
+Eres "OntoAI", un Coach Ontológico Experto. Estás a cargo del Módulo 2: Autodesarrollo. 
+REGLA DE ORO: Sistema interactivo estrictamente secuencial. NO pases al siguiente paso hasta que el usuario complete el actual. UNA sola intervención por turno.
 
-# Inicializar historial
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": "Hola. Soy tu espacio de reflexión. ¿Qué conversación difícil te está dando vueltas hoy?"}]
+PROTOCOLO DE SEGURIDAD:
+Si en el Paso 5 el usuario indica una intensidad emocional > 6.5, DETÉN el proceso: "Percibo una intensidad emocional alta que puede comprometer el resultado. Pausamos el diseño aquí. Te sugiero respiración consciente, revisar corporalidad, o solicitar asistencia a tu coach."
 
-# Mostrar chat con Avatares
-for msg in st.session_state.messages:
-    if msg["role"] == "assistant":
-        st.chat_message("assistant", avatar="🧠").write(msg["content"])
-    else:
-        st.chat_message("user", avatar="👤").write(msg["content"])
+SECUENCIA OBLIGATORIA:
+PASO 1: VACIADO MENTAL. Pídele 3 juicios positivos y 3 negativos cortos sobre la persona/situación. Espera.
+PASO 2: SELECCIÓN ESTRATÉGICA. Pídele que elija 1 positivo y 1 negativo críticos. Espera.
+PASO 3: FUNDAMENTACIÓN. Toma el negativo y haz las 5 preguntas (Propósito, Estándar, Dominio, 3 Hechos, Juicio contrario) de a UNA por vez. Luego repite con el positivo.
+PASO 4: TAMIZ DEL DECÁLOGO. Evalúa si violó reglas (Etiquetado, Generalización, Adscripción de intenciones). Si hay error, hazlo notar empáticamente. Si no, avanza.
+PASO 5: TERMÓMETRO EMOCIONAL. Pídele que nombre su emoción actual y la califique del 1 al 10. Evalúa con el umbral 6.5.
+PASO 6: CIERRE. Si <= 6.5, indícale que su dominio es óptimo y puede exportar el resumen.
+"""
 
-# --- 5. LÓGICA DEL CHAT ---
-if prompt := st.chat_input("Escribe aquí lo que te pasa..."):
-    # Validación de seguridad
-    if not openai_api_key:
-        st.info("💡 Configuración necesaria: Agrega tu API Key en los 'Secrets' del panel de control.")
-        st.stop()
+# 5. BARRA LATERAL (NAVEGACIÓN)
+with st.sidebar:
+    st.title("🧠 OntoAI App")
+    st.session_state.current_module = st.radio("Navegación:", ["Módulo 1: Diseño", "Módulo 2: Autodesarrollo"])
     
-    # Procesamiento
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    st.chat_message("user", avatar="👤").write(prompt)
+    st.divider()
+    st.markdown("**Panel de Control Temporal (Admin)**")
+    # Este selector manual simula la detección de la IA para cambiar el decálogo
+    st.session_state.tipo_conversacion = st.selectbox(
+        "Tipo de Conversación Definida:", 
+        ["No definido", "Conversación de Juicios", "Coordinación de Acciones", "Posibles Acciones", "Posibles Conversaciones", "Relaciones"]
+    )
+    
+    if st.button("Reiniciar Sesión"):
+        st.session_state.messages_mod1 = []
+        st.session_state.messages_mod2 = []
+        st.rerun()
 
-    client = OpenAI(api_key=openai_api_key)
-    messages_for_ai = [{"role": "system", "content": SYSTEM_PROMPT}] + st.session_state.messages
+# 6. INTERFAZ MÓDULO 1: DISEÑO
+if st.session_state.current_module == "Módulo 1: Diseño":
+    st.header("Módulo 1: Diseño de la Conversación")
     
-    with st.chat_message("assistant", avatar="🧠"):
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=messages_for_ai,
-            stream=True,
-        )
-        response = st.write_stream(stream)
+    # Inicializar prompt de sistema si el chat está vacío
+    if not st.session_state.messages_mod1:
+        st.session_state.messages_mod1.append({"role": "system", "content": PROMPT_MODULO_1})
+        st.session_state.messages_mod1.append({"role": "assistant", "content": "¡Hola! Soy tu coach de OntoAI. Para comenzar a diseñar nuestra conversación, ¿con quién necesitas hablar y qué situación puntual generó esta necesidad?"})
+
+    # Mostrar historial (omitiendo el system prompt)
+    for msg in st.session_state.messages_mod1:
+        if msg["role"] != "system":
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+
+    # Input del usuario
+    if prompt := st.chat_input("Escribe tu respuesta aquí..."):
+        st.session_state.messages_mod1.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            full_response = ""
+            # Llamada a la API de OpenAI
+            for response in client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages_mod1],
+                stream=True,
+            ):
+                full_response += (response.choices[0].delta.content or "")
+                message_placeholder.markdown(full_response + "▌")
+            message_placeholder.markdown(full_response)
+        st.session_state.messages_mod1.append({"role": "assistant", "content": full_response})
+
+# 7. INTERFAZ MÓDULO 2: AUTODESARROLLO
+elif st.session_state.current_module == "Módulo 2: Autodesarrollo":
+    st.header("Módulo 2: Preparación y Autodesarrollo")
     
-    st.session_state.messages.append({"role": "assistant", "content": response})
+    # Lógica de inyección del decálogo correcto
+    decalogo_contexto = ""
+    if st.session_state.tipo_conversacion in ["Conversación de Juicios", "Coordinación de Acciones"]:
+        decalogo_contexto = "REGLA ADICIONAL: Utiliza los principios del DECÁLOGO PARA ENTREGAR JUICIOS."
+    elif st.session_state.tipo_conversacion in ["Posibles Acciones", "Posibles Conversaciones", "Relaciones"]:
+        decalogo_contexto = "REGLA ADICIONAL: Utiliza los principios del DECÁLOGO PARA RECIBIR JUICIOS."
+
+    prompt_dinamico_mod2 = PROMPT_MODULO_2 + "\n" + decalogo_contexto
+
+    # Inicializar prompt de sistema si el chat está vacío
+    if not st.session_state.messages_mod2:
+        st.session_state.messages_mod2.append({"role": "system", "content": prompt_dinamico_mod2})
+        st.session_state.messages_mod2.append({"role": "assistant", "content": "Bienvenido al espacio de autodesarrollo. Para empezar nuestro vaciado mental, por favor escribe 3 juicios positivos y 3 juicios negativos (frases cortas) sobre la persona o situación."})
+
+    # Mostrar historial
+    for msg in st.session_state.messages_mod2:
+        if msg["role"] != "system":
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+
+    # Input del usuario
+    if prompt := st.chat_input("Escribe tus juicios aquí..."):
+        st.session_state.messages_mod2.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+
+        with st.chat_message("assistant"):
+            message_placeholder = st.empty()
+            full_response = ""
+            for response in client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages_mod2],
+                stream=True,
+            ):
+                full_response += (response.choices[0].delta.content or "")
+                message_placeholder.markdown(full_response + "▌")
+            message_placeholder.markdown(full_response)
+        st.session_state.messages_mod2.append({"role": "assistant", "content": full_response})
