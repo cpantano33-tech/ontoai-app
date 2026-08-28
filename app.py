@@ -163,7 +163,7 @@ if not st.session_state.accepted_terms:
         <div class="banner-legal">
             <strong>BIENVENIDO A DIALECTA,</strong><br><br>
             el simulador conversacional que te permite, a través del aprendizaje simulado, practicar y diseñar conversaciones de 1° orden, buscando mejorar tus habilidades genéricas conversacionales, mientras practicas diseños de indagaciones o armado de opiniones fundadas, monitoreando siempre tus emociones. El simulador podrá hacerte preguntas que buscan activar reflexiones, procurando que las tengas presentes, ya que éstas funcionan como condicionantes para la acción.<br><br>
-            <strong>IMPORTANTE:</strong> DIALECTA NO BUSCA DIRIGIR TUS CONVERSACIONES YA QUE ESTAS SON RESPONSABILIDAD HUMANA Y/U ORGANIZACIONAL.<br><br>
+            <strong>IMPORTANTE:</strong> DIALECTA NO BUSCA DIRIGIR TUS CONVERSACIONES YA QUE ESTAS SON RESPONSABILIDAD HUMAN Y/U ORGANIZACIONAL.<br><br>
             <strong>RECUERDA:</strong> ¡la práctica hace al maestro!
         </div>
         """,
@@ -182,7 +182,7 @@ else:
     st.warning("Por favor, configura tu OPENAI_API_KEY en los Secrets de Streamlit.")
     st.stop()
 
-# Funciones auxiliares de Audio
+# Funciones auxiliares de Audio con voz optimizada (shimmer)
 def procesar_audio_usuario(audio_bytes):
     if not audio_bytes or len(audio_bytes) < 1000:
         return None
@@ -212,7 +212,7 @@ def generar_y_reproducir_voz(texto):
     try:
         response = client.audio.speech.create(
             model="tts-1",
-            voice="nova",
+            voice="shimmer", # Voz más madura, cálida y empática
             input=texto
         )
         st.audio(response.content, format="audio/mp3", autoplay=True)
