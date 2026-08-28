@@ -66,14 +66,20 @@ if "messages_mod1" not in st.session_state:
 if "messages_mod2" not in st.session_state:
     st.session_state.messages_mod2 = []
 
+# Determinamos la ruta absoluta del directorio actual
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
 # 3. PANTALLA DE BLOQUEO (BANNER OBLIGATORIO)
 if not st.session_state.accepted_terms:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        try:
-            st.image("LOGO DIALECTA OSCURO.jpeg", use_column_width=True)
-        except:
+        # Forzamos la ruta absoluta para la imagen oscura
+        logo_oscuro_path = os.path.join(current_dir, "LOGO DIALECTA OSCURO.jpeg")
+        if os.path.exists(logo_oscuro_path):
+            st.image(logo_oscuro_path, use_column_width=True)
+        else:
             st.title("DIALECTA")
+            st.error(f"No se encontró la imagen en: {logo_oscuro_path}")
 
         st.markdown(
             """
@@ -196,10 +202,13 @@ PASO 4: PLAN DE ACERCAMIENTO. Pídele que elija al colega con peor puntuación y
 
 # 6. BARRA LATERAL (NAVEGACIÓN Y MARCA)
 with st.sidebar:
-    try:
-        st.image("LOGO DIALECTA CLARO.jpeg", use_column_width=True)
-    except:
+    # Forzamos la ruta absoluta para la imagen clara
+    logo_claro_path = os.path.join(current_dir, "LOGO DIALECTA CLARO.jpeg")
+    if os.path.exists(logo_claro_path):
+        st.image(logo_claro_path, use_column_width=True)
+    else:
         st.title("DIALECTA")
+        st.error(f"No se encontró la imagen en: {logo_claro_path}")
 
     st.markdown("### Navegación Principal")
     st.session_state.current_module = st.radio(
