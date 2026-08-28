@@ -1,13 +1,16 @@
 import datetime
+import tempfile
+import os
 from openai import OpenAI
 import streamlit as st
+from audio_recorder_streamlit import audio_recorder
 
 # 1. CONFIGURACIÓN DE LA PÁGINA Y ESTILOS
 st.set_page_config(
     page_title="DIALECTA - Simulador Conversacional", page_icon="💬", layout="wide"
 )
 
-# Estilos CSS personalizados para Dialecta (Tarjetas, botones y limpieza visual)
+# Estilos CSS personalizados para Dialecta
 custom_css = """
 <style>
     #MainMenu {visibility: hidden;}
@@ -41,6 +44,12 @@ custom_css = """
         margin-bottom: 20px;
         border: 1px solid #e0e0e0;
     }
+    .audio-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 10px;
+        margin-bottom: 20px;
+    }
 </style>
 """
 st.markdown(custom_css, unsafe_allow_html=True)
@@ -70,9 +79,9 @@ if not st.session_state.accepted_terms:
             """
         <div class="banner-legal">
             <strong>BIENVENIDO A DIALECTA,</strong><br><br>
-            el simulador conversacional que te permite, a traves del aprendizaje simulado, practicar y diseñar conversaciones de 1° orden, buscando mejorar tus habilidades genericas conversacionales, el simulador te permite relfexionar sobre tus emociones o estado de animo, procurando que tengas mayor conciencia sobre el poder de las emociones en la acción, en este caso en tus conversaciones.<br><br>
-            <strong>IMPORTANTE:</strong> DIALECTA NO BUSCA DIRIGIR TUS CONVERSACIONES YA QUE ESTAS SON RESPONSABILIDAD HUMANA Y U ORGANIZACIONAL.<br><br>
-            <strong>RECUERDA:</strong> la practica hace al maestro!
+            el simulador conversacional que te permite, a través del aprendizaje simulado, practicar y diseñar conversaciones de 1° orden, buscando mejorar tus habilidades genéricas conversacionales, mientras practicas diseños de indagaciones o armado de opiniones fundadas, monitoreando siempre tus emociones. El simulador podrá hacerte preguntas que buscan activar reflexiones, procurando que las tengas presentes, ya que éstas funcionan como condicionantes para la acción.<br><br>
+            <strong>IMPORTANTE:</strong> DIALECTA NO BUSCA DIRIGIR TUS CONVERSACIONES YA QUE ESTAS SON RESPONSABILIDAD HUMANA Y/U ORGANIZACIONAL.<br><br>
+            <strong>RECUERDA:</strong> ¡la práctica hace al maestro!
         </div>
         """,
             unsafe_allow_html=True,
@@ -81,7 +90,7 @@ if not st.session_state.accepted_terms:
         if st.button("Comprendo y Acepto", type="primary"):
             st.session_state.accepted_terms = True
             st.rerun()
-    st.stop()  # Detiene la ejecución del resto de la app hasta aceptar
+    st.stop()
 
 # 4. CONFIGURACIÓN DEL CLIENTE OPENAI
 if "OPENAI_API_KEY" in st.secrets:
@@ -89,6 +98,28 @@ if "OPENAI_API_KEY" in st.secrets:
 else:
     st.warning("Por favor, configura tu OPENAI_API_KEY en los Secrets de Streamlit.")
     st.stop()
+
+# Funciones auxiliares de Audio
+def procesar_audio_usuario(audio_bytes):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as fp:
+        fp.write(audio_bytes)
+        fp_path = fp.name
+    with open(fp_path, "rb") as audio_file:
+        transcript = client.audio.transcriptions.create(
+            model="whisper-1", 
+            file=audio_file,
+            language="es"
+        )
+    os.remove(fp_path)
+    return transcript.text
+
+def generar_y_reproducir_voz(texto):
+    response = client.audio.speech.create(
+        model="tts-1",
+        voice="nova", # Opciones: alloy, echo, fable, onyx, nova, shimmer
+        input=texto
+    )
+    st.audio(response.content, format="audio/mp3", autoplay=True)
 
 # 5. DEFINICIÓN DE LOS SYSTEM PROMPTS MAESTROS
 PROMPT_MODULO_1 = """
@@ -179,22 +210,35 @@ if st.session_state.current_module == "Módulo 1: Diseño":
         st.session_state.messages_mod1.append(
             {"role": "system", "content": PROMPT_MODULO_1}
         )
+        mensaje_inicial = "¡Hola!, soy tu coach virtual. Para comenzar a diseñar nuestra conversación, es importante que me des el contexto y me cuentes qué te inquieta hoy y qué esperas lograr."
         st.session_state.messages_mod1.append(
-            {
-                "role": "assistant",
-                "content": "Hola!, soy tu coach virtual. Para comenzar a diseñar nuestra conversación, es importante que me de el contexto y me cuentes que te inquieta hoy y que esperas lograr.",
-            }
+            {"role": "assistant", "content": mensaje_inicial}
         )
+        generar_y_reproducir_voz(mensaje_inicial)
 
     for msg in st.session_state.messages_mod1:
         if msg["role"] != "system":
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
 
-    if prompt := st.chat_input("Escribe tu respuesta aquí..."):
+    # Controles de entrada: Audio o Texto
+    col_input1, col_input2 = st.columns([1, 10])
+    with col_input1:
+        audio_bytes = audio_recorder(text="", icon_size="2x")
+    with col_input2:
+        prompt_text = st.chat_input("Escribe tu respuesta aquí...")
+
+    prompt = None
+    if audio_bytes:
+        prompt = procesar_audio_usuario(audio_bytes)
+    elif prompt_text:
+        prompt = prompt_text
+
+    if prompt:
         st.session_state.messages_mod1.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
+            
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
             full_response = ""
@@ -209,6 +253,8 @@ if st.session_state.current_module == "Módulo 1: Diseño":
                 full_response += response.choices[0].delta.content or ""
                 message_placeholder.markdown(full_response + "▌")
             message_placeholder.markdown(full_response)
+            generar_y_reproducir_voz(full_response)
+            
         st.session_state.messages_mod1.append(
             {"role": "assistant", "content": full_response}
         )
@@ -232,7 +278,6 @@ elif st.session_state.current_module == "Módulo 2: Autodesarrollo":
 
     with col2:
         st.markdown("<br>", unsafe_allow_html=True)
-        # Generar plantillas descargables según el ejercicio
         if ejercicio_seleccionado == "Aprender a fundar juicios":
             plantilla = "# Plantilla: Aprender a fundar juicios\n\n1. Escribe 2 juicios positivos y 2 negativos:\n\n2. Elige uno y fundaméntalo:\n- Propósito:\n- Estándar:\n- Dominio:\n- 3 Hechos comprobables:\n- 1 Hecho contrario:\n\n3. Reflexión basada en el decálogo:"
         elif ejercicio_seleccionado == "Mejorar la escucha":
@@ -265,22 +310,33 @@ elif st.session_state.current_module == "Módulo 2: Autodesarrollo":
             prompt_dinamico = PROMPT_MOD2_RELACIONES
             mensaje_bienvenida = "Bienvenido al diseño de tu Mapa de Relaciones. Antes de evaluar a otros, hagamos un ejercicio de espejo: ¿Hace cuánto tiempo no te miras, no para ver tu aspecto, sino para evaluarte internamente? ¿Qué cosas mejorarías de ti a nivel actitudinal?"
 
-        st.session_state.messages_mod2.append(
-            {"role": "system", "content": prompt_dinamico}
-        )
-        st.session_state.messages_mod2.append(
-            {"role": "assistant", "content": mensaje_bienvenida}
-        )
+        st.session_state.messages_mod2.append({"role": "system", "content": prompt_dinamico})
+        st.session_state.messages_mod2.append({"role": "assistant", "content": mensaje_bienvenida})
+        generar_y_reproducir_voz(mensaje_bienvenida)
 
     for msg in st.session_state.messages_mod2:
         if msg["role"] != "system":
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
 
-    if prompt := st.chat_input("Escribe tu respuesta aquí..."):
+    # Controles de entrada: Audio o Texto
+    col_input1, col_input2 = st.columns([1, 10])
+    with col_input1:
+        audio_bytes = audio_recorder(text="", icon_size="2x")
+    with col_input2:
+        prompt_text = st.chat_input("Escribe tu respuesta aquí...")
+
+    prompt = None
+    if audio_bytes:
+        prompt = procesar_audio_usuario(audio_bytes)
+    elif prompt_text:
+        prompt = prompt_text
+
+    if prompt:
         st.session_state.messages_mod2.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
+            
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
             full_response = ""
@@ -295,6 +351,8 @@ elif st.session_state.current_module == "Módulo 2: Autodesarrollo":
                 full_response += response.choices[0].delta.content or ""
                 message_placeholder.markdown(full_response + "▌")
             message_placeholder.markdown(full_response)
+            generar_y_reproducir_voz(full_response)
+            
         st.session_state.messages_mod2.append(
             {"role": "assistant", "content": full_response}
         )
