@@ -416,7 +416,7 @@ elif st.session_state.current_module == "Módulo 2: Autodesarrollo":
     with col_c4:
         st.markdown("""
         <div class="exercise-card-pedir">
-            <h4>🤝 Pedir y Ofertarr</h4>
+            <h4>🤝 Pedir y Ofertar</h4>
             <p>Diseña pedidos efectivos y comprende el ciclo de confianza.</p>
         </div>
         """, unsafe_allow_html=True)
@@ -440,7 +440,6 @@ elif st.session_state.current_module == "Módulo 2: Autodesarrollo":
 
     # Configuración de historial y prompt según la tarjeta activa
     if st.session_state.ejercicio_actual == "Aprender a fundar juicios":
-        prompt_activo = PROMPT_MODULO_1  # Fallback o específico
         prompt_activo = PROMPT_MOD2_JUICIOS
         historial_activo = st.session_state.messages_mod2_juicios
         bienvenida_activa = "Bienvenido al ejercicio de fundamentación. Por favor escribe o graba 2 juicios positivos y 2 negativos sobre ti o un tercero."
@@ -503,7 +502,6 @@ elif st.session_state.current_module == "Administración de Tableros (B2B)":
     st.header("Panel de Control Organizacional (B2B)")
     st.markdown("Monitoreo ejecutivo de licencias corporativas y desarrollo estratégico de la red.")
 
-    # Pestañas internas para separar FEEDBACK y ANÁLISIS DE REDES
     sub_tab1, sub_tab2 = st.tabs(["💬 FEEDBACK Y RED DE OBSERVADORES", "🕸️ ANÁLISIS DE REDES ORGANIZACIONALES (ONA)"])
 
     with sub_tab1:
@@ -563,10 +561,10 @@ elif st.session_state.current_module == "Administración de Tableros (B2B)":
             ona_area = st.selectbox("Área objetivo de evaluación", ["Comité Ejecutivo", "Liderazgos de Proyecto", "Operaciones & Soporte", "Organización Global"])
             ona_foco = st.multiselect("Indicadores críticos a medir", [
                 "Fluidez en la coordinación de acciones",
-                "ConFIabilidad y sinceridad percibida",
+                "Confiabilidad y sinceridad percibida",
                 "Detección de cuellos de botella conversacionales",
                 "Efectividad en la declaración de quiebres"
-            ], default=["Fluidez en la coordinación de acciones", "ConFIabilidad y sinceridad percibida"])
+            ], default=["Fluidez en la coordinación de acciones", "Confiabilidad y sinceridad percibida"])
             
             st.text_area("Cuestionario personalizado de la red (Sentencias calibradas)", 
                          value="1. ¿Con qué frecuencia acudes a este colaborador cuando necesitas destrabar un proyecto crítico?\n2. ¿Consideras que las conversaciones con esta área generan confianza mutua y apertura?")
