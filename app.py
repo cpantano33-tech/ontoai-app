@@ -10,7 +10,7 @@ st.set_page_config(
     page_title="DIALECTA - Simulador Conversacional", page_icon="💬", layout="wide"
 )
 
-# Estilos CSS personalizados para Dialecta (Look Simulador Inmersivo Claro)
+# Estilos CSS avanzados para Tarjetas de Ejercicios y Look Inmersivo Claro
 custom_css = """
 <style>
     #MainMenu {visibility: hidden;}
@@ -30,20 +30,61 @@ custom_css = """
         100% { background-position: 0% 50%; }
     }
 
-    /* 2. EFECTO VIDRIO (GLASSMORPHISM) PARA TARJETAS Y BANNER */
+    /* 2. EFECTO VIDRIO (GLASSMORPHISM) GENERAL */
     .module-card, .banner-legal {
-        background: rgba(255, 255, 255, 0.65) !important;
+        background: rgba(255, 255, 255, 0.7) !important;
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.8);
-        border-radius: 12px;
-        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 14px;
+        padding: 24px;
         margin-bottom: 20px;
         box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
         color: #1a1a1a;
     }
 
-    /* 3. BOTONES MODERNOS TIPO CONSOLA */
+    /* 3. TARJETAS DE EJERCICIOS (MÓDULO 2) */
+    .exercise-card-juicios {
+        background: linear-gradient(135deg, rgba(255, 235, 238, 0.85), rgba(255, 205, 210, 0.6)) !important;
+        border-left: 6px solid #e53935;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 15px rgba(229, 57, 53, 0.15);
+    }
+    .exercise-card-escucha {
+        background: linear-gradient(135deg, rgba(227, 242, 253, 0.85), rgba(187, 222, 251, 0.6)) !important;
+        border-left: 6px solid #1e88e5;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 15px rgba(30, 136, 229, 0.15);
+    }
+    .exercise-card-relaciones {
+        background: linear-gradient(135deg, rgba(232, 245, 233, 0.85), rgba(200, 230, 201, 0.6)) !important;
+        border-left: 6px solid #43a047;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 15px rgba(67, 160, 71, 0.15);
+    }
+
+    /* 4. TARJETAS DE MÉTRICAS (B2B DASHBOARD) */
+    .metric-card {
+        background: rgba(255, 255, 255, 0.85);
+        border: 1px solid rgba(0, 86, 179, 0.2);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .metric-value {
+        font-size: 2em;
+        font-weight: bold;
+        color: #0056b3;
+    }
+
+    /* 5. BOTONES MODERNOS */
     .stButton>button {
         background: linear-gradient(135deg, #0056b3, #00bfff) !important;
         border: none !important;
@@ -61,15 +102,13 @@ custom_css = """
         box-shadow: 0 6px 20px rgba(0, 191, 255, 0.4);
     }
     
-    /* 4. AJUSTE DEL TEXTO PRINCIPAL DEL BANNER */
+    /* 6. AJUSTES TEXTOS Y SIDEBAR */
     .banner-legal strong {
         color: #0056b3;
         font-size: 1.2em;
     }
-
-    /* 5. FONDO DEL MENÚ LATERAL TRANSPARENTE */
     [data-testid="stSidebar"] {
-        background-color: rgba(240, 244, 255, 0.6) !important;
+        background-color: rgba(240, 244, 255, 0.7) !important;
         backdrop-filter: blur(15px);
         border-right: 1px solid rgba(255, 255, 255, 0.5);
     }
@@ -77,7 +116,7 @@ custom_css = """
 """
 st.markdown(custom_css, unsafe_allow_html=True)
 
-# 2. GESTIÓN DEL ESTADO DE SESIÓN (Enrutador y Banner)
+# 2. GESTIÓN DEL ESTADO DE SESIÓN (Enrutadores y Estados)
 if "accepted_terms" not in st.session_state:
     st.session_state.accepted_terms = False
 if "current_module" not in st.session_state:
@@ -86,14 +125,17 @@ if "ejercicio_actual" not in st.session_state:
     st.session_state.ejercicio_actual = "Aprender a fundar juicios"
 if "messages_mod1" not in st.session_state:
     st.session_state.messages_mod1 = []
-if "messages_mod2" not in st.session_state:
-    st.session_state.messages_mod2 = []
+if "messages_mod2_juicios" not in st.session_state:
+    st.session_state.messages_mod2_juicios = []
+if "messages_mod2_escucha" not in st.session_state:
+    st.session_state.messages_mod2_escucha = []
+if "messages_mod2_relaciones" not in st.session_state:
+    st.session_state.messages_mod2_relaciones = []
 
 # 3. PANTALLA DE BLOQUEO (BANNER OBLIGATORIO)
 if not st.session_state.accepted_terms:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        # Usando el logo oscuro porque el fondo ahora es claro y luminoso
         st.image("LOGO DIALECTA OSCURO.jpeg", use_container_width=True) 
 
         st.markdown(
@@ -122,7 +164,6 @@ else:
 
 # Funciones auxiliares de Audio
 def procesar_audio_usuario(audio_bytes):
-    # 1. Filtro Anti-Error: Verifica que el audio tenga datos reales antes de enviarlo
     if not audio_bytes or len(audio_bytes) < 1000:
         return None
 
@@ -137,32 +178,28 @@ def procesar_audio_usuario(audio_bytes):
                 file=audio_file,
                 language="es"
             )
-            
         texto = transcript.text.strip()
-        
-        # 2. Filtro Anti-Alucinaciones: Bloquea los textos fantasma de Whisper
         alucinaciones = ["Amara.org", "Subtítulos", "Subtitulos", "Traducido por"]
         if not texto or any(falso.lower() in texto.lower() for falso in alucinaciones):
             return None
-            
         return texto
-        
-    except Exception as e:
-        # Si hay un error de conexión, evita que se rompa la app
+    except Exception:
         return None
-        
     finally:
         os.remove(fp_path)
 
 def generar_y_reproducir_voz(texto):
-    response = client.audio.speech.create(
-        model="tts-1",
-        voice="nova", # Opciones: alloy, echo, fable, onyx, nova, shimmer
-        input=texto
-    )
-    st.audio(response.content, format="audio/mp3", autoplay=True)
+    try:
+        response = client.audio.speech.create(
+            model="tts-1",
+            voice="nova",
+            input=texto
+        )
+        st.audio(response.content, format="audio/mp3", autoplay=True)
+    except Exception:
+        pass
 
-# 5. DEFINICIÓN DE LOS SYSTEM PROMPTS MAESTROS
+# 5. PROMPTS DEL SISTEMA
 PROMPT_MODULO_1 = """
 Eres "Dialecta", un Coach Ontológico Experto y Entrenador de Competencias Conversacionales. Tu objetivo es facilitar un aprendizaje de segundo orden en el usuario (coachee) para que él mismo diseñe conversaciones efectivas. 
 REGLAS DE ORO: 
@@ -201,7 +238,7 @@ Eres "Dialecta", facilitando el "Autodiagnóstico de la Escucha" (Basado en R. E
 SECUENCIA:
 PASO 1: LA BRECHA INEVITABLE. Pídele que piense en una reunión reciente donde el resultado no fue el esperado. Pregunta: ¿Consideras que tu habla fue efectiva si el resultado falló? (Recuérdale que la escucha valida el habla).
 PASO 2: LA MÚSICA VS LA LETRA. Pregúntale: En esa reunión, ¿estuviste multitarea? ¿Cuánta información gestual o de tono ('la música') crees que perdiste?
-PASO 3: LA INQUIETUD. Pídele que identifique a alguien de su equipo con quien la comunicación está bloqueada. Pregúntale: ¿Qué prejuicios tienes sobre esta persona antes de que hable?
+PASO 3: LA INQUIETUD. Pídele que identifique a alguien de su equipo con quien la comunicación está bloqueada. Pregúntale: چه prejuicios tienes sobre esta persona antes de que hable?
 PASO 4: EL RETO PRÁCTICO. Desafíalo para su próxima reunión: "Prohíbete dar soluciones los primeros 15 minutos. Tu único objetivo será descubrir su inquietud haciendo esta pregunta: 'Para entenderte mejor, ¿qué es lo que más te preocupa?'". Pídele que reflexione cómo se siente ante este reto.
 """
 
@@ -217,18 +254,16 @@ PASO 4: PLAN DE ACERCAMIENTO. Pídele que elija al colega con peor puntuación y
 
 # 6. BARRA LATERAL (NAVEGACIÓN Y MARCA)
 with st.sidebar:
-    # Usando el logo oscuro para que resalte en la barra lateral clara
     st.image("LOGO DIALECTA OSCURO.jpeg", use_container_width=True)
 
     st.markdown("### Navegación Principal")
-    
-    # Se agregó una 'key' única para evitar el error DuplicateElementId
     st.session_state.current_module = st.radio(
         "",
         [
             "Módulo 1: Diseño",
             "Módulo 2: Autodesarrollo",
             "Módulo 3: Coach en Línea",
+            "Administración de Tableros (B2B)",
             "Exploraciones Autodiagnósticas",
             "Biblioteca",
         ],
@@ -239,7 +274,9 @@ with st.sidebar:
     st.divider()
     if st.button("Reiniciar Sesión Total"):
         st.session_state.messages_mod1 = []
-        st.session_state.messages_mod2 = []
+        st.session_state.messages_mod2_juicios = []
+        st.session_state.messages_mod2_escucha = []
+        st.session_state.messages_mod2_relaciones = []
         st.rerun()
 
 # 7. ENRUTADOR DE VISTAS PRINCIPALES
@@ -263,18 +300,13 @@ if st.session_state.current_module == "Módulo 1: Diseño":
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
 
-    # Controles de entrada: Audio o Texto
     col_input1, col_input2 = st.columns([1, 10])
     with col_input1:
         audio_bytes = audio_recorder(text="", icon_size="2x")
     with col_input2:
         prompt_text = st.chat_input("Escribe tu respuesta aquí...")
 
-    prompt = None
-    if audio_bytes:
-        prompt = procesar_audio_usuario(audio_bytes)
-    elif prompt_text:
-        prompt = prompt_text
+    prompt = procesar_audio_usuario(audio_bytes) if audio_bytes else prompt_text
 
     if prompt:
         st.session_state.messages_mod1.append({"role": "user", "content": prompt})
@@ -286,10 +318,7 @@ if st.session_state.current_module == "Módulo 1: Diseño":
             full_response = ""
             for response in client.chat.completions.create(
                 model="gpt-3.5-turbo",
-                messages=[
-                    {"role": m["role"], "content": m["content"]}
-                    for m in st.session_state.messages_mod1
-                ],
+                messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages_mod1],
                 stream=True,
             ):
                 full_response += response.choices[0].delta.content or ""
@@ -303,91 +332,91 @@ if st.session_state.current_module == "Módulo 1: Diseño":
 
 elif st.session_state.current_module == "Módulo 2: Autodesarrollo":
     st.header("Módulo 2: Gimnasio de Autodesarrollo")
-    st.markdown(
-        "Selecciona un ejercicio, complétalo en línea con Dialecta o descarga la plantilla para tu reflexión personal."
-    )
+    st.markdown("Selecciona una habilidad para entrenar de forma interactiva con Dialecta o descarga su plantilla de apoyo.")
 
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        ejercicio_seleccionado = st.selectbox(
-            "Selecciona la habilidad que deseas entrenar:",
-            [
-                "Aprender a fundar juicios",
-                "Mejorar la escucha",
-                "Mapa de relaciones interpersonales",
-            ],
-        )
+    # TARJETAS DE EJERCICIOS ESTÉTICAS (SELECCIÓN)
+    col_card1, col_card2, col_card3 = st.columns(3)
 
-    with col2:
-        st.markdown("<br>", unsafe_allow_html=True)
-        if ejercicio_seleccionado == "Aprender a fundar juicios":
-            plantilla = "# Plantilla: Aprender a fundar juicios\n\n1. Escribe 2 juicios positivos y 2 negativos:\n\n2. Elige uno y fundaméntalo:\n- Propósito:\n- Estándar:\n- Dominio:\n- 3 Hechos comprobables:\n- 1 Hecho contrario:\n\n3. Reflexión basada en el decálogo:"
-        elif ejercicio_seleccionado == "Mejorar la escucha":
-            plantilla = "# Plantilla: Autodiagnóstico de la Escucha (R. Echeverría)\n\n1. Piensa en una reunión reciente que falló. ¿Asumes la responsabilidad de la brecha interpretativa?\n\n2. ¿Qué prejuicios tienes sobre un colega con quien la comunicación está bloqueada?\n\n3. Reto de 15 min: Descubre su inquietud. ¿Qué descubriste al no dar soluciones inmediatas?"
-        else:
-            plantilla = "# Plantilla: Mapa de Relaciones\n\n| Colega | Relación | Calidad (1-5) | Confianza (1-5) | Cuánto Escucho (1-5) | Cuánto me Escuchan (1-5) |\n|---|---|---|---|---|---|\n| 1 | | | | | |\n| 2 | | | | | |\n| 3 | | | | | |\n\nReflexión: ¿Qué dice esto de ti como líder? Plan de acercamiento para la relación más baja:"
+    with col_card1:
+        st.markdown("""
+        <div class="exercise-card-juicios">
+            <h4>⚖️ Fundar Juicios</h4>
+            <p>Evalúa tus opiniones, distingue hechos de etiquetas y aprende el decálogo ontológico.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Entrenar Juicios", key="btn_juicios"):
+            st.session_state.ejercicio_actual = "Aprender a fundar juicios"
+            st.rerun()
 
-        st.download_button(
-            label="Descargar Plantilla",
-            data=plantilla,
-            file_name=f"Plantilla_{ejercicio_seleccionado.replace(' ', '_')}.txt",
-            mime="text/plain",
-        )
+    with col_card2:
+        st.markdown("""
+        <div class="exercise-card-escucha">
+            <h4>🎧 Mejorar la Escucha</h4>
+            <p>Diagnostica tu brecha interpretativa y entrena la escucha de inquietudes genuinas.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Entrenar Escucha", key="btn_escucha"):
+            st.session_state.ejercicio_actual = "Mejorar la escucha"
+            st.rerun()
 
-    if st.session_state.ejercicio_actual != ejercicio_seleccionado:
-        st.session_state.ejercicio_actual = ejercicio_seleccionado
-        st.session_state.messages_mod2 = []
-        st.rerun()
+    with col_card3:
+        st.markdown("""
+        <div class="exercise-card-relaciones">
+            <h4>🌐 Mapa de Relaciones</h4>
+            <p>Analiza tu vínculo con colegas clave y diseña estrategias efectivas de acercamiento.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Entrenar Relaciones", key="btn_relaciones"):
+            st.session_state.ejercicio_actual = "Mapa de relaciones interpersonales"
+            st.rerun()
 
-    if not st.session_state.messages_mod2:
-        prompt_dinamico = ""
-        mensaje_bienvenida = ""
-        if ejercicio_seleccionado == "Aprender a fundar juicios":
-            prompt_dinamico = PROMPT_MOD2_JUICIOS
-            mensaje_bienvenida = "Bienvenido al ejercicio de fundamentación. Para empezar nuestra revisión, por favor escribe 2 juicios positivos y 2 juicios negativos que tengas sobre ti mismo o sobre alguien de tu equipo."
-        elif ejercicio_seleccionado == "Mejorar la escucha":
-            prompt_dinamico = PROMPT_MOD2_ESCUCHA
-            mensaje_bienvenida = "Bienvenido al Autodiagnóstico de la Escucha. Para empezar, piensa en una reunión reciente donde el resultado operativo no fue el que esperabas. ¿Consideras que tu forma de hablar fue efectiva si, al final, el resultado falló?"
-        elif ejercicio_seleccionado == "Mapa de relaciones interpersonales":
-            prompt_dinamico = PROMPT_MOD2_RELACIONES
-            mensaje_bienvenida = "Bienvenido al diseño de tu Mapa de Relaciones. Antes de evaluar a otros, hagamos un ejercicio de espejo: ¿Hace cuánto tiempo no te miras, no para ver tu aspecto, sino para evaluarte internamente? ¿Qué cosas mejorarías de ti a nivel actitudinal?"
+    st.divider()
+    st.subheader(f"Entrenamiento Activo: {st.session_state.ejercicio_actual}")
 
-        st.session_state.messages_mod2.append({"role": "system", "content": prompt_dinamico})
-        st.session_state.messages_mod2.append({"role": "assistant", "content": mensaje_bienvenida})
-        generar_y_reproducir_voz(mensaje_bienvenida)
+    # Configuración de historial y prompt según la tarjeta activa
+    if st.session_state.ejercicio_actual == "Aprender a fundar juicios":
+        prompt_activo = PROMPT_MOD2_JUICIOS
+        historial_activo = st.session_state.messages_mod2_juicios
+        bienvenida_activa = "Bienvenido al ejercicio de fundamentación. Para empezar nuestra revisión, por favor escribe o graba 2 juicios positivos y 2 juicios negativos que tengas sobre ti mismo o sobre alguien de tu equipo."
+    elif st.session_state.ejercicio_actual == "Mejorar la escucha":
+        prompt_activo = PROMPT_MOD2_ESCUCHA
+        historial_activo = st.session_state.messages_mod2_escucha
+        bienvenida_activa = "Bienvenido al Autodiagnóstico de la Escucha. Piensa en una reunión reciente donde el resultado operativo no fue el que esperabas. ¿Consideras que tu forma de hablar fue efectiva si el resultado falló?"
+    else:
+        prompt_activo = PROMPT_MOD2_RELACIONES
+        historial_activo = st.session_state.messages_mod2_relaciones
+        bienvenida_activa = "Bienvenido al diseño de tu Mapa de Relaciones. Antes de evaluar a otros, hagamos un ejercicio de espejo: ¿Hace cuánto tiempo no te miras a nivel actitudinal para evaluarte internamente?"
 
-    for msg in st.session_state.messages_mod2:
+    if not historial_activo:
+        historial_activo.append({"role": "system", "content": prompt_activo})
+        historial_activo.append({"role": "assistant", "content": bienvenida_activa})
+        generar_y_reproducir_voz(bienvenida_activa)
+
+    for msg in historial_activo:
         if msg["role"] != "system":
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
 
-    # Controles de entrada: Audio o Texto
+    # Controles de entrada de voz y texto para el Gimnasio
     col_input1, col_input2 = st.columns([1, 10])
     with col_input1:
-        audio_bytes = audio_recorder(text="", icon_size="2x")
+        audio_bytes_mod2 = audio_recorder(text="", icon_size="2x", key="mic_mod2")
     with col_input2:
-        prompt_text = st.chat_input("Escribe tu respuesta aquí...")
+        prompt_text_mod2 = st.chat_input("Escribe tu respuesta aquí...", key="input_mod2")
 
-    prompt = None
-    if audio_bytes:
-        prompt = procesar_audio_usuario(audio_bytes)
-    elif prompt_text:
-        prompt = prompt_text
+    prompt_mod2 = procesar_audio_usuario(audio_bytes_mod2) if audio_bytes_mod2 else prompt_text_mod2
 
-    if prompt:
-        st.session_state.messages_mod2.append({"role": "user", "content": prompt})
+    if prompt_mod2:
+        historial_activo.append({"role": "user", "content": prompt_mod2})
         with st.chat_message("user"):
-            st.markdown(prompt)
+            st.markdown(prompt_mod2)
             
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
             full_response = ""
             for response in client.chat.completions.create(
                 model="gpt-3.5-turbo",
-                messages=[
-                    {"role": m["role"], "content": m["content"]}
-                    for m in st.session_state.messages_mod2
-                ],
+                messages=[{"role": m["role"], "content": m["content"]} for m in historial_activo],
                 stream=True,
             ):
                 full_response += response.choices[0].delta.content or ""
@@ -395,84 +424,99 @@ elif st.session_state.current_module == "Módulo 2: Autodesarrollo":
             message_placeholder.markdown(full_response)
             generar_y_reproducir_voz(full_response)
             
-        st.session_state.messages_mod2.append(
-            {"role": "assistant", "content": full_response}
-        )
+        historial_activo.append({"role": "assistant", "content": full_response})
+
+elif st.session_state.current_module == "Administración de Tableros (B2B)":
+    st.header("Panel de Control Organizacional (B2B)")
+    st.markdown("Monitoreo ejecutivo de licencias corporativas, métricas de uso y retroalimentación de la red de observadores.")
+
+    col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+    with col_m1:
+        st.markdown('<div class="metric-card"><p>Licencias Activas</p><div class="metric-value">48 / 50</div></div>', unsafe_allow_html=True)
+    with col_m2:
+        st.markdown('<div class="metric-card"><p>Tasa de Uso Semanal</p><div class="metric-value">84%</div></div>', unsafe_allow_html=True)
+    with col_m3:
+        st.markdown('<div class="metric-card"><p>Conversaciones Diseñadas</p><div class="metric-value">312</div></div>', unsafe_allow_html=True)
+    with col_m4:
+        st.markdown('<div class="metric-card"><p>Feedback de Red</p><div class="metric-value">4.8 / 5</div></div>', unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    col_tab1, col_tab2 = st.columns(2)
+    with col_tab1:
+        st.markdown('<div class="module-card">', unsafe_allow_html=True)
+        st.subheader("👥 Progreso de Colaboradores")
+        st.markdown("""
+        * **María Gómez (Gerente de Operaciones):** Módulo 1 completado (4 simulaciones). *Tendencia positiva en gestión de quiebres.*
+        * **Carlos Ruiz (Team Leader Comercial):** Gimnasio de Juicios activo. *Progreso: 75%*.
+        * **Lucía Fernández (People Partner):** Mapa de Relaciones finalizado. *Pendiente feedback 360°*.
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with col_tab2:
+        st.markdown('<div class="module-card">', unsafe_allow_html=True)
+        st.subheader("🔔 Red de Observadores y Solicitudes")
+        st.markdown("Permite solicitar a pares o líderes de la red que califiquen las mejoras conversacionales del coachee.")
+        
+        with st.form("form_solicitud_red"):
+            col_s1, col_s2 = st.columns(2)
+            with col_s1:
+                colab_sel = st.selectbox("Colaborador evaluado", ["María Gómez", "Carlos Ruiz", "Lucía Fernández"])
+            with col_s2:
+                observador_email = st.text_input("Email del observador externo")
+            
+            mensaje_inv = st.text_area("Mensaje de solicitud de evaluación de desempeño conversacional")
+            enviar_sol = st.form_submit_button("Enviar Solicitud a la Red")
+            if enviar_sol:
+                st.success(f"¡Solicitud enviada con éxito a {observador_email} para evaluar a {colab_sel}!")
+        st.markdown('</div>', unsafe_allow_html=True)
 
 elif st.session_state.current_module == "Módulo 3: Coach en Línea":
     st.header("Módulo 3: Coach en Línea")
-    st.markdown(
-        "Agenda tu sesión personalizada con un experto humano para profundizar en tus resultados del simulador."
-    )
+    st.markdown("Agenda tu sesión personalizada con un experto humano para profundizar en tus resultados del simulador.")
 
     st.markdown('<div class="module-card">', unsafe_allow_html=True)
     with st.form("agendamiento_form"):
         col1, col2 = st.columns(2)
         with col1:
-            fecha = st.date_input(
-                "Fecha preferida", min_value=datetime.date.today()
-            )
-            horario = st.selectbox(
-                "Franja horaria",
-                ["Mañana (9:00 - 12:00)", "Tarde (14:00 - 18:00)"],
-            )
+            fecha = st.date_input("Fecha preferida", min_value=datetime.date.today())
+            horario = st.selectbox("Franja horaria", ["Mañana (9:00 - 12:00)", "Tarde (14:00 - 18:00)"])
         with col2:
-            foco = st.selectbox(
-                "Tema principal a trabajar",
-                [
-                    "Diseño de Conversación Crítica",
-                    "Gestión de Juicios",
-                    "Desarrollo de Escucha Activa",
-                    "Liderazgo y Relaciones",
-                ],
-            )
+            foco = st.selectbox("Tema principal a trabajar", ["Diseño de Conversación Crítica", "Gestión de Juicios", "Desarrollo de Escucha Activa", "Liderazgo y Relaciones"])
             comentarios = st.text_area("Comentarios adicionales")
 
         submitted = st.form_submit_button("Agendar Sesión")
         if submitted:
-            st.success(
-                f"¡Solicitud enviada! Nos pondremos en contacto para confirmar tu sesión el {fecha.strftime('%d/%m/%Y')} en el horario de {horario}."
-            )
+            st.success(f"¡Solicitud enviada! Nos pondremos en contacto para confirmar tu sesión el {fecha.strftime('%d/%m/%Y')} en el horario de {horario}.")
     st.markdown("</div>", unsafe_allow_html=True)
 
 elif st.session_state.current_module == "Exploraciones Autodiagnósticas":
     st.header("Exploraciones Autodiagnósticas")
-    st.markdown(
-        "Evalúa tu punto de partida antes de iniciar el diseño de tus conversaciones."
-    )
+    st.markdown("Evalúa tu punto de partida antes de iniciar el diseño de tus conversaciones.")
 
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown(
-            """
+        st.markdown("""
         <div class="module-card">
             <h4>1. Cuestionario de Escucha Reactiva</h4>
             <p>Descubre tu brecha interpretativa en reuniones críticas y cómo afecta a tu equipo.</p>
             <button style="width:100%; padding:8px; border-radius:5px; background-color:#f0f2f6; border:1px solid #ccc; color: #333;">Iniciar Evaluación</button>
         </div>
-        """,
-            unsafe_allow_html=True,
-        )
+        """, unsafe_allow_html=True)
     with col2:
-        st.markdown(
-            """
+        st.markdown("""
         <div class="module-card">
             <h4>2. Evaluación de Roles (Belbin)</h4>
             <p>Comprende cómo tus percepciones impactan en la dinámica de trabajo de tu equipo.</p>
             <button style="width:100%; padding:8px; border-radius:5px; background-color:#f0f2f6; border:1px solid #ccc; color: #333;">Iniciar Evaluación</button>
         </div>
-        """,
-            unsafe_allow_html=True,
-        )
+        """, unsafe_allow_html=True)
 
 elif st.session_state.current_module == "Biblioteca":
     st.header("Biblioteca de Distinciones")
-    st.markdown(
-        "Material teórico y lecturas recomendadas para anclar los conceptos clave."
-    )
+    st.markdown("Material teórico y lecturas recomendadas para anclar los conceptos clave.")
 
-    st.markdown(
-        """
+    st.markdown("""
     <div class="module-card">
         <h3>📚 Lecturas Sugeridas</h3>
         <ul>
@@ -481,9 +525,7 @@ elif st.session_state.current_module == "Biblioteca":
             <li><strong>El Mapa de la Inquietud:</strong> Herramientas para transformar la escucha reactiva en escucha generativa.</li>
         </ul>
     </div>
-    """,
-        unsafe_allow_html=True,
-    )
+    """, unsafe_allow_html=True)
 
     st.download_button(
         label="Descargar Guía Rápida de Distinciones",
