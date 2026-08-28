@@ -48,7 +48,7 @@ custom_css = """
         background: linear-gradient(135deg, rgba(255, 235, 238, 0.85), rgba(255, 205, 210, 0.6)) !important;
         border-left: 6px solid #e53935;
         border-radius: 12px;
-        padding: 20px;
+        padding: 18px;
         margin-bottom: 15px;
         box-shadow: 0 4px 15px rgba(229, 57, 53, 0.15);
     }
@@ -56,7 +56,7 @@ custom_css = """
         background: linear-gradient(135deg, rgba(227, 242, 253, 0.85), rgba(187, 222, 251, 0.6)) !important;
         border-left: 6px solid #1e88e5;
         border-radius: 12px;
-        padding: 20px;
+        padding: 18px;
         margin-bottom: 15px;
         box-shadow: 0 4px 15px rgba(30, 136, 229, 0.15);
     }
@@ -64,9 +64,25 @@ custom_css = """
         background: linear-gradient(135deg, rgba(232, 245, 233, 0.85), rgba(200, 230, 201, 0.6)) !important;
         border-left: 6px solid #43a047;
         border-radius: 12px;
-        padding: 20px;
+        padding: 18px;
         margin-bottom: 15px;
         box-shadow: 0 4px 15px rgba(67, 160, 71, 0.15);
+    }
+    .exercise-card-pedir {
+        background: linear-gradient(135deg, rgba(255, 243, 224, 0.85), rgba(255, 224, 178, 0.6)) !important;
+        border-left: 6px solid #fb8c00;
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 15px rgba(251, 140, 0, 0.15);
+    }
+    .exercise-card-declaraciones {
+        background: linear-gradient(135deg, rgba(243, 229, 245, 0.85), rgba(225, 190, 231, 0.6)) !important;
+        border-left: 6px solid #8e24aa;
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 15px;
+        box-shadow: 0 4px 15px rgba(142, 36, 170, 0.15);
     }
 
     /* 4. TARJETAS DE MÉTRICAS (B2B DASHBOARD) */
@@ -131,6 +147,10 @@ if "messages_mod2_escucha" not in st.session_state:
     st.session_state.messages_mod2_escucha = []
 if "messages_mod2_relaciones" not in st.session_state:
     st.session_state.messages_mod2_relaciones = []
+if "messages_mod2_pedir" not in st.session_state:
+    st.session_state.messages_mod2_pedir = []
+if "messages_mod2_declaraciones" not in st.session_state:
+    st.session_state.messages_mod2_declaraciones = []
 
 # 3. PANTALLA DE BLOQUEO (BANNER OBLIGATORIO)
 if not st.session_state.accepted_terms:
@@ -236,20 +256,40 @@ PROMPT_MOD2_ESCUCHA = f"""
 Eres "Dialecta", facilitando el "Autodiagnóstico de la Escucha" (Basado en R. Echeverría).
 {REGLAS_COMUNES_MOD2}
 SECUENCIA:
-PASO 1: LA BRECHA INEVITABLE. Pídele que piense en una reunión reciente donde el resultado no fue el esperado. Pregunta: ¿Consideras que tu habla fue efectiva si el resultado falló? (Recuérdale que la escucha valida el habla).
-PASO 2: LA MÚSICA VS LA LETRA. Pregúntale: En esa reunión, ¿estuviste multitarea? ¿Cuánta información gestual o de tono ('la música') crees que perdiste?
-PASO 3: LA INQUIETUD. Pídele que identifique a alguien de su equipo con quien la comunicación está bloqueada. Pregúntale: چه prejuicios tienes sobre esta persona antes de que hable?
-PASO 4: EL RETO PRÁCTICO. Desafíalo para su próxima reunión: "Prohíbete dar soluciones los primeros 15 minutos. Tu único objetivo será descubrir su inquietud haciendo esta pregunta: 'Para entenderte mejor, ¿qué es lo que más te preocupa?'". Pídele que reflexione cómo se siente ante este reto.
+PASO 1: LA BRECHA INEVITABLE. Pídele que piense en una reunión reciente donde el resultado no fue el esperado. Pregunta: ¿Consideras que tu habla fue efectiva si el resultado falló?
+PASO 2: LA MÚSICA VS LA LETRA. Pregúntale: En esa reunión, ¿estuviste multitarea? ¿Cuánta información gestual o de tono perdiste?
+PASO 3: LA INQUIETUD. Pídele que identifique a alguien de su equipo con quien la comunicación está bloqueada y sus prejuicios.
+PASO 4: EL RETO PRÁCTICO. Desafíalo para su próxima reunión: "Prohíbete dar soluciones los primeros 15 minutos y descubre su inquietud".
 """
 
 PROMPT_MOD2_RELACIONES = f"""
 Eres "Dialecta", facilitando el ejercicio "Mapa de Relaciones Interpersonales".
 {REGLAS_COMUNES_MOD2}
 SECUENCIA:
-PASO 1: ESPEJO. Pregúntale: ¿Hace cuánto no te miras realmente al espejo? ¿Qué cosas mejorarías de ti a nivel actitudinal?
-PASO 2: EL MAPA. Pídele que liste mentalmente a 3 colegas clave. Para el primero, pídele que califique del 1 al 5: 1) Calidad de conversaciones, 2) Confianza, 3) Cuánto los escucha, 4) Cuánto siente que lo escuchan. Haz esto uno por uno.
-PASO 3: ANÁLISIS. Pregúntale: Al ver estas métricas, ¿qué dice eso de ti mismo como líder?
-PASO 4: PLAN DE ACERCAMIENTO. Pídele que elija al colega con peor puntuación y diseñen juntos una estrategia para acercarse explorando un punto de vista distinto.
+PASO 1: ESPEJO. Pregúntale: ¿Hace cuánto no te miras realmente a nivel actitudinal?
+PASO 2: EL MAPA. Pídele que liste 3 colegas clave y evalúe métricas de confianza y escucha uno por uno.
+PASO 3: ANÁLISIS. Pregúntale qué dice eso de sí mismo como líder.
+PASO 4: PLAN DE ACERCAMIENTO. Diseñen juntos una estrategia para acercarse al colega con menor puntuación.
+"""
+
+PROMPT_MOD2_PEDIR = f"""
+Eres "Dialecta", facilitando el ejercicio "Aprender a pedir y ofertar (Ciclo de la confianza)".
+{REGLAS_COMUNES_MOD2}
+SECUENCIA:
+PASO 1: IDENTIFICACIÓN DEL PEDIDO. Pídele al usuario que piense en un pedido crítico que necesite hacer y que esté postergando.
+PASO 2: LAS 4 CONDICIONES DE UN PEDIDO EFECTIVO. Guíalo para estructurar: A) Orador B) Oyente C) Condición de satisfacción explícita D) Tiempo preciso de cumplimiento. (Hazlo paso a paso).
+PASO 3: JUICIO DE COMPETENCIA Y SINCERIDAD. Pregúntale: ¿Confías en que la persona tiene la competencia y la sinceridad para cumplirlo? Si hay dudas, ¿cómo rediseñas el pedido?
+PASO 4: CIERRE. Pregunta qué barrera personal venció al estructurar este pedido de manera clara.
+"""
+
+PROMPT_MOD2_DECLARACIONES = f"""
+Eres "Dialecta", facilitando el ejercicio "Declaraciones Básicas".
+{REGLAS_COMUNES_MOD2}
+SECUENCIA:
+PASO 1: PODER Y DISTINCIÓN. Explica brevemente que las declaraciones no describen la realidad, sino que la transforman, y requieren autoridad legítima.
+PASO 2: LAS 5 DECLARACIONES FUNDAMENTALES. Pídele que elija una de estas declaraciones que le esté costando hacer en su rol actual: 1) El "No", 2) El "Sí", 3) El "No sé", 4) El "Gracias", 5) El "Perdón".
+PASO 3: EL COSTO DE NO DECLARAR. Pregúntale: ¿Qué consecuencias estás pagando por no haber realizado esta declaración a tiempo y con quién deberías hacerla?
+PASO 4: DISEÑO Y CIERRE. Guíalo para que redacte la declaración de manera limpia y asuma el compromiso de emitirla.
 """
 
 # 6. BARRA LATERAL (NAVEGACIÓN Y MARCA)
@@ -277,6 +317,8 @@ with st.sidebar:
         st.session_state.messages_mod2_juicios = []
         st.session_state.messages_mod2_escucha = []
         st.session_state.messages_mod2_relaciones = []
+        st.session_state.messages_mod2_pedir = []
+        st.session_state.messages_mod2_declaraciones = []
         st.rerun()
 
 # 7. ENRUTADOR DE VISTAS PRINCIPALES
@@ -334,40 +376,63 @@ elif st.session_state.current_module == "Módulo 2: Autodesarrollo":
     st.header("Módulo 2: Gimnasio de Autodesarrollo")
     st.markdown("Selecciona una habilidad para entrenar de forma interactiva con Dialecta o descarga su plantilla de apoyo.")
 
-    # TARJETAS DE EJERCICIOS ESTÉTICAS (SELECCIÓN)
-    col_card1, col_card2, col_card3 = st.columns(3)
+    # TARJETAS DE EJERCICIOS ESTÉTICAS (SELECCIÓN) - 5 TARJETAS
+    col_c1, col_c2, col_c3 = st.columns(3)
 
-    with col_card1:
+    with col_c1:
         st.markdown("""
         <div class="exercise-card-juicios">
             <h4>⚖️ Fundar Juicios</h4>
-            <p>Evalúa tus opiniones, distingue hechos de etiquetas y aprende el decálogo ontológico.</p>
+            <p>Evalúa tus opiniones y distingue hechos de etiquetas.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Entrenar Juicios", key="btn_juicios"):
             st.session_state.ejercicio_actual = "Aprender a fundar juicios"
             st.rerun()
 
-    with col_card2:
+    with col_c2:
         st.markdown("""
         <div class="exercise-card-escucha">
             <h4>🎧 Mejorar la Escucha</h4>
-            <p>Diagnostica tu brecha interpretativa y entrena la escucha de inquietudes genuinas.</p>
+            <p>Diagnostica tu brecha interpretativa y escucha inquietudes.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Entrenar Escucha", key="btn_escucha"):
             st.session_state.ejercicio_actual = "Mejorar la escucha"
             st.rerun()
 
-    with col_card3:
+    with col_c3:
         st.markdown("""
         <div class="exercise-card-relaciones">
             <h4>🌐 Mapa de Relaciones</h4>
-            <p>Analiza tu vínculo con colegas clave y diseña estrategias efectivas de acercamiento.</p>
+            <p>Analiza tu vínculo con colegas clave y diseña cercamientos.</p>
         </div>
         """, unsafe_allow_html=True)
         if st.button("Entrenar Relaciones", key="btn_relaciones"):
             st.session_state.ejercicio_actual = "Mapa de relaciones interpersonales"
+            st.rerun()
+
+    col_c4, col_c5, _ = st.columns(3)
+    with col_c4:
+        st.markdown("""
+        <div class="exercise-card-pedir">
+            <h4>🤝 Pedir y Ofertarr</h4>
+            <p>Diseña pedidos efectivos y comprende el ciclo de confianza.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Entrenar Pedidos", key="btn_pedir"):
+            st.session_state.ejercicio_actual = "Aprender a pedir y ofertar"
+            st.rerun()
+
+    with col_c5:
+        st.markdown("""
+        <div class="exercise-card-declaraciones">
+            <h4>⚡ Declaraciones Básicas</h4>
+            <p>Trabaja el poder del 'No', 'No sé', 'Gracias' y 'Perdón'.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("Entrenar Declaraciones", key="btn_declaraciones"):
+            st.session_state.ejercicio_actual = "Declaraciones básicas"
             st.rerun()
 
     st.divider()
@@ -375,17 +440,26 @@ elif st.session_state.current_module == "Módulo 2: Autodesarrollo":
 
     # Configuración de historial y prompt según la tarjeta activa
     if st.session_state.ejercicio_actual == "Aprender a fundar juicios":
+        prompt_activo = PROMPT_MODULO_1  # Fallback o específico
         prompt_activo = PROMPT_MOD2_JUICIOS
         historial_activo = st.session_state.messages_mod2_juicios
-        bienvenida_activa = "Bienvenido al ejercicio de fundamentación. Para empezar nuestra revisión, por favor escribe o graba 2 juicios positivos y 2 juicios negativos que tengas sobre ti mismo o sobre alguien de tu equipo."
+        bienvenida_activa = "Bienvenido al ejercicio de fundamentación. Por favor escribe o graba 2 juicios positivos y 2 negativos sobre ti o un tercero."
     elif st.session_state.ejercicio_actual == "Mejorar la escucha":
         prompt_activo = PROMPT_MOD2_ESCUCHA
         historial_activo = st.session_state.messages_mod2_escucha
-        bienvenida_activa = "Bienvenido al Autodiagnóstico de la Escucha. Piensa en una reunión reciente donde el resultado operativo no fue el que esperabas. ¿Consideras que tu forma de hablar fue efectiva si el resultado falló?"
-    else:
+        bienvenida_activa = "Bienvenido al Autodiagnóstico de la Escucha. Piensa en una reunión reciente donde el resultado operativo falló."
+    elif st.session_state.ejercicio_actual == "Mapa de relaciones interpersonales":
         prompt_activo = PROMPT_MOD2_RELACIONES
         historial_activo = st.session_state.messages_mod2_relaciones
-        bienvenida_activa = "Bienvenido al diseño de tu Mapa de Relaciones. Antes de evaluar a otros, hagamos un ejercicio de espejo: ¿Hace cuánto tiempo no te miras a nivel actitudinal para evaluarte internamente?"
+        bienvenida_activa = "Bienvenido al diseño de tu Mapa de Relaciones. ¿Hace cuánto no te evalúas internamente a nivel actitudinal?"
+    elif st.session_state.ejercicio_actual == "Aprender a pedir y ofertar":
+        prompt_activo = PROMPT_MOD2_PEDIR
+        historial_activo = st.session_state.messages_mod2_pedir
+        bienvenida_activa = "Bienvenido al ciclo de la confianza. Piensa en un pedido crítico que necesites hacer y estés postergando."
+    else:
+        prompt_activo = PROMPT_MOD2_DECLARACIONES
+        historial_activo = st.session_state.messages_mod2_declaraciones
+        bienvenida_activa = "Bienvenido a Declaraciones Básicas. ¿Cuál de las declaraciones fundamentales sientes que te cuesta más realizar hoy?"
 
     if not historial_activo:
         historial_activo.append({"role": "system", "content": prompt_activo})
@@ -397,7 +471,6 @@ elif st.session_state.current_module == "Módulo 2: Autodesarrollo":
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
 
-    # Controles de entrada de voz y texto para el Gimnasio
     col_input1, col_input2 = st.columns([1, 10])
     with col_input1:
         audio_bytes_mod2 = audio_recorder(text="", icon_size="2x", key="mic_mod2")
@@ -428,47 +501,79 @@ elif st.session_state.current_module == "Módulo 2: Autodesarrollo":
 
 elif st.session_state.current_module == "Administración de Tableros (B2B)":
     st.header("Panel de Control Organizacional (B2B)")
-    st.markdown("Monitoreo ejecutivo de licencias corporativas, métricas de uso y retroalimentación de la red de observadores.")
+    st.markdown("Monitoreo ejecutivo de licencias corporativas y desarrollo estratégico de la red.")
 
-    col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-    with col_m1:
-        st.markdown('<div class="metric-card"><p>Licencias Activas</p><div class="metric-value">48 / 50</div></div>', unsafe_allow_html=True)
-    with col_m2:
-        st.markdown('<div class="metric-card"><p>Tasa de Uso Semanal</p><div class="metric-value">84%</div></div>', unsafe_allow_html=True)
-    with col_m3:
-        st.markdown('<div class="metric-card"><p>Conversaciones Diseñadas</p><div class="metric-value">312</div></div>', unsafe_allow_html=True)
-    with col_m4:
-        st.markdown('<div class="metric-card"><p>Feedback de Red</p><div class="metric-value">4.8 / 5</div></div>', unsafe_allow_html=True)
+    # Pestañas internas para separar FEEDBACK y ANÁLISIS DE REDES
+    sub_tab1, sub_tab2 = st.tabs(["💬 FEEDBACK Y RED DE OBSERVADORES", "🕸️ ANÁLISIS DE REDES ORGANIZACIONALES (ONA)"])
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    col_tab1, col_tab2 = st.columns(2)
-    with col_tab1:
-        st.markdown('<div class="module-card">', unsafe_allow_html=True)
-        st.subheader("👥 Progreso de Colaboradores")
-        st.markdown("""
-        * **María Gómez (Gerente de Operaciones):** Módulo 1 completado (4 simulaciones). *Tendencia positiva en gestión de quiebres.*
-        * **Carlos Ruiz (Team Leader Comercial):** Gimnasio de Juicios activo. *Progreso: 75%*.
-        * **Lucía Fernández (People Partner):** Mapa de Relaciones finalizado. *Pendiente feedback 360°*.
-        """)
-        st.markdown('</div>', unsafe_allow_html=True)
+    with sub_tab1:
+        st.markdown("<br>", unsafe_allow_html=True)
+        col_m1, col_m2, col_m3, col_m4 = st.columns(4)
+        with col_m1:
+            st.markdown('<div class="metric-card"><p>Licencias Activas</p><div class="metric-value">48 / 50</div></div>', unsafe_allow_html=True)
+        with col_m2:
+            st.markdown('<div class="metric-card"><p>Tasa de Uso</p><div class="metric-value">84%</div></div>', unsafe_allow_html=True)
+        with col_m3:
+            st.markdown('<div class="metric-card"><p>Simulaciones</p><div class="metric-value">312</div></div>', unsafe_allow_html=True)
+        with col_m4:
+            st.markdown('<div class="metric-card"><p>Feedback Red</p><div class="metric-value">4.8 / 5</div></div>', unsafe_allow_html=True)
 
-    with col_tab2:
-        st.markdown('<div class="module-card">', unsafe_allow_html=True)
-        st.subheader("🔔 Red de Observadores y Solicitudes")
-        st.markdown("Permite solicitar a pares o líderes de la red que califiquen las mejoras conversacionales del coachee.")
+        st.markdown("<br>", unsafe_allow_html=True)
         
-        with st.form("form_solicitud_red"):
-            col_s1, col_s2 = st.columns(2)
-            with col_s1:
-                colab_sel = st.selectbox("Colaborador evaluado", ["María Gómez", "Carlos Ruiz", "Lucía Fernández"])
-            with col_s2:
-                observador_email = st.text_input("Email del observador externo")
+        col_tab1, col_tab2 = st.columns(2)
+        with col_tab1:
+            st.markdown('<div class="module-card">', unsafe_allow_html=True)
+            st.subheader("👥 Progreso de Colaboradores")
+            st.markdown("""
+            * **María Gómez (Operaciones):** Módulo 1 completado. *Tendencia positiva en gestión de quiebres.*
+            * **Carlos Ruiz (Comercial):** Gimnasio de Juicios activo. *Progreso: 75%*.
+            * **Lucía Fernández (People Partner):** Mapa de Relaciones finalizado.
+            """)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        with col_tab2:
+            st.markdown('<div class="module-card">', unsafe_allow_html=True)
+            st.subheader("🔔 Solicitar Feedback a la Red")
+            st.markdown("Permite solicitar a pares o líderes externos que califiquen las mejoras conversacionales del coachee.")
             
-            mensaje_inv = st.text_area("Mensaje de solicitud de evaluación de desempeño conversacional")
-            enviar_sol = st.form_submit_button("Enviar Solicitud a la Red")
-            if enviar_sol:
-                st.success(f"¡Solicitud enviada con éxito a {observador_email} para evaluar a {colab_sel}!")
+            with st.form("form_solicitud_red"):
+                col_s1, col_s2 = st.columns(2)
+                with col_s1:
+                    colab_sel = st.selectbox("Colaborador evaluado", ["María Gómez", "Carlos Ruiz", "Lucía Fernández"])
+                with col_s2:
+                    observador_email = st.text_input("Email del observador de su red")
+                
+                mensaje_inv = st.text_area("Mensaje de solicitud de evaluación de desempeño")
+                enviar_sol = st.form_submit_button("Enviar Solicitud a la Red")
+                if enviar_sol:
+                    st.success(f"¡Solicitud enviada con éxito a {observador_email} para evaluar a {colab_sel}!")
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    with sub_tab2:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown('<div class="module-card">', unsafe_allow_html=True)
+        st.subheader("Módulo ONA: Mapeo de Redes de Conversación y Relaciones Clave")
+        st.markdown("""
+        Este instrumento permite a la organización identificar nodos de influencia, silos comunicacionales y la calidad 
+        de los vínculos conversacionales entre áreas estratégicas.
+        """)
+
+        with st.form("form_ona_config"):
+            st.markdown("#### Configuración de Encuesta de Red")
+            ona_area = st.selectbox("Área objetivo de evaluación", ["Comité Ejecutivo", "Liderazgos de Proyecto", "Operaciones & Soporte", "Organización Global"])
+            ona_foco = st.multiselect("Indicadores críticos a medir", [
+                "Fluidez en la coordinación de acciones",
+                "ConFIabilidad y sinceridad percibida",
+                "Detección de cuellos de botella conversacionales",
+                "Efectividad en la declaración de quiebres"
+            ], default=["Fluidez en la coordinación de acciones", "ConFIabilidad y sinceridad percibida"])
+            
+            st.text_area("Cuestionario personalizado de la red (Sentencias calibradas)", 
+                         value="1. ¿Con qué frecuencia acudes a este colaborador cuando necesitas destrabar un proyecto crítico?\n2. ¿Consideras que las conversaciones con esta área generan confianza mutua y apertura?")
+            
+            lanzar_ona = st.form_submit_button("Generar y Desplegar Cuestionario ONA")
+            if lanzar_ona:
+                st.success(f"¡Cuestionario ONA configurado y listo para distribuirse en el área '{ona_area}'!")
         st.markdown('</div>', unsafe_allow_html=True)
 
 elif st.session_state.current_module == "Módulo 3: Coach en Línea":
