@@ -10,16 +10,16 @@ st.set_page_config(
     page_title="DIALECTA - Simulador Conversacional", page_icon="💬", layout="wide"
 )
 
-# Estilos CSS personalizados para Dialecta (Look Simulador Inmersivo)
+# Estilos CSS personalizados para Dialecta (Look Simulador Inmersivo Claro)
 custom_css = """
 <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     
-    /* 1. FONDO ANIMADO DEL SIMULADOR */
+    /* 1. FONDO ANIMADO LUMINOSO Y MODERNO */
     .stApp {
-        background: linear-gradient(-45deg, #0b132b, #1c2541, #3a506b, #0f2027);
+        background: linear-gradient(-45deg, #f0f4ff, #d9e2ec, #e0eafc, #cfdef3);
         background-size: 400% 400%;
         animation: gradientBG 15s ease infinite;
     }
@@ -32,39 +32,46 @@ custom_css = """
 
     /* 2. EFECTO VIDRIO (GLASSMORPHISM) PARA TARJETAS Y BANNER */
     .module-card, .banner-legal {
-        background: rgba(255, 255, 255, 0.05) !important;
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.65) !important;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.8);
         border-radius: 12px;
         padding: 20px;
         margin-bottom: 20px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        color: #e0e0e0;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+        color: #1a1a1a;
     }
 
     /* 3. BOTONES MODERNOS TIPO CONSOLA */
     .stButton>button {
-        background: rgba(0, 191, 255, 0.1) !important;
-        border: 1px solid rgba(0, 191, 255, 0.4) !important;
-        color: #00bfff !important;
+        background: linear-gradient(135deg, #0056b3, #00bfff) !important;
+        border: none !important;
+        color: #ffffff !important;
         border-radius: 8px;
         font-weight: bold;
         transition: all 0.3s ease;
         width: 100%;
         text-transform: uppercase;
         letter-spacing: 1px;
+        box-shadow: 0 4px 15px rgba(0, 191, 255, 0.2);
     }
     .stButton>button:hover {
-        background: rgba(0, 191, 255, 0.3) !important;
-        box-shadow: 0 0 15px rgba(0, 191, 255, 0.5);
         transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 191, 255, 0.4);
     }
     
     /* 4. AJUSTE DEL TEXTO PRINCIPAL DEL BANNER */
     .banner-legal strong {
-        color: #00bfff;
+        color: #0056b3;
         font-size: 1.2em;
+    }
+
+    /* 5. FONDO DEL MENÚ LATERAL TRANSPARENTE */
+    [data-testid="stSidebar"] {
+        background-color: rgba(240, 244, 255, 0.6) !important;
+        backdrop-filter: blur(15px);
+        border-right: 1px solid rgba(255, 255, 255, 0.5);
     }
 </style>
 """
@@ -86,8 +93,8 @@ if "messages_mod2" not in st.session_state:
 if not st.session_state.accepted_terms:
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        # Usando el parámetro moderno para ajustar la imagen al contenedor
-        st.image("LOGO DIALECTA CLARO.jpeg", use_container_width=True) # Usamos el claro porque el fondo es oscuro
+        # Usando el logo oscuro porque el fondo ahora es claro y luminoso
+        st.image("LOGO DIALECTA OSCURO.jpeg", use_container_width=True) 
 
         st.markdown(
             """
@@ -210,8 +217,8 @@ PASO 4: PLAN DE ACERCAMIENTO. Pídele que elija al colega con peor puntuación y
 
 # 6. BARRA LATERAL (NAVEGACIÓN Y MARCA)
 with st.sidebar:
-    # Usando el parámetro moderno para la imagen clara
-    st.image("LOGO DIALECTA CLARO.jpeg", use_container_width=True)
+    # Usando el logo oscuro para que resalte en la barra lateral clara
+    st.image("LOGO DIALECTA OSCURO.jpeg", use_container_width=True)
 
     st.markdown("### Navegación Principal")
     
