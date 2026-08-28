@@ -70,7 +70,7 @@ if not st.session_state.accepted_terms:
             """
         <div class="banner-legal">
             <strong>BIENVENIDO A DIALECTA,</strong><br><br>
-            el simulador conversacional que te permite, a traves del aprendizaje simulado, practicar y diseñar conversaciones de 1° orden, buscando mejorar tus habilidades genericas conversacionaels, al mismo tiempo que podras practicar diseñarlas buscando impactar en los resultados.<br><br>
+            el simulador conversacional que te permite, a traves del aprendizaje simulado, practicar y diseñar conversaciones de 1° orden, buscando mejorar tus habilidades genericas conversacionales, el simulador te permite relfexionar sobre tus emociones o estado de animo, procurando que tengas mayor conciencia sobre el poder de las emociones en la acción, en este caso en tus conversaciones.<br><br>
             <strong>IMPORTANTE:</strong> DIALECTA NO BUSCA DIRIGIR TUS CONVERSACIONES YA QUE ESTAS SON RESPONSABILIDAD HUMANA Y U ORGANIZACIONAL.<br><br>
             <strong>RECUERDA:</strong> la practica hace al maestro!
         </div>
