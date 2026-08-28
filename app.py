@@ -101,17 +101,37 @@ else:
 
 # Funciones auxiliares de Audio
 def procesar_audio_usuario(audio_bytes):
+    # 1. Filtro Anti-Error: Verifica que el audio tenga datos reales antes de enviarlo
+    if not audio_bytes or len(audio_bytes) < 1000:
+        return None
+
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as fp:
         fp.write(audio_bytes)
         fp_path = fp.name
-    with open(fp_path, "rb") as audio_file:
-        transcript = client.audio.transcriptions.create(
-            model="whisper-1", 
-            file=audio_file,
-            language="es"
-        )
-    os.remove(fp_path)
-    return transcript.text
+        
+    try:
+        with open(fp_path, "rb") as audio_file:
+            transcript = client.audio.transcriptions.create(
+                model="whisper-1", 
+                file=audio_file,
+                language="es"
+            )
+            
+        texto = transcript.text.strip()
+        
+        # 2. Filtro Anti-Alucinaciones: Bloquea los textos fantasma de Whisper
+        alucinaciones = ["Amara.org", "Subtítulos", "Subtitulos", "Traducido por"]
+        if not texto or any(falso.lower() in texto.lower() for falso in alucinaciones):
+            return None
+            
+        return texto
+        
+    except Exception as e:
+        # Si hay un error de conexión, evita que se rompa la app
+        return None
+        
+    finally:
+        os.remove(fp_path)
 
 def generar_y_reproducir_voz(texto):
     response = client.audio.speech.create(
