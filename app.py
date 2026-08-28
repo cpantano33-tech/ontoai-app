@@ -163,7 +163,7 @@ if not st.session_state.accepted_terms:
         <div class="banner-legal">
             <strong>BIENVENIDO A DIALECTA,</strong><br><br>
             el simulador conversacional que te permite, a través del aprendizaje simulado, practicar y diseñar conversaciones de 1° orden, buscando mejorar tus habilidades genéricas conversacionales, mientras practicas diseños de indagaciones o armado de opiniones fundadas, monitoreando siempre tus emociones. El simulador podrá hacerte preguntas que buscan activar reflexiones, procurando que las tengas presentes, ya que éstas funcionan como condicionantes para la acción.<br><br>
-            <strong>IMPORTANTE:</strong> DIALECTA NO BUSCA DIRIGIR TUS CONVERSACIONES YA QUE ESTAS SON RESPONSABILIDAD HUMAN Y/U ORGANIZACIONAL.<br><br>
+            <strong>IMPORTANTE:</strong> DIALECTA NO BUSCA DIRIGIR TUS CONVERSACIONES YA QUE ESTAS SON RESPONSABILIDAD HUMANA Y/U ORGANIZACIONAL.<br><br>
             <strong>RECUERDA:</strong> ¡la práctica hace al maestro!
         </div>
         """,
@@ -212,7 +212,7 @@ def generar_y_reproducir_voz(texto):
     try:
         response = client.audio.speech.create(
             model="tts-1",
-            voice="shimmer", # Voz más madura, cálida y empática
+            voice="shimmer",
             input=texto
         )
         st.audio(response.content, format="audio/mp3", autoplay=True)
@@ -502,7 +502,11 @@ elif st.session_state.current_module == "Administración de Tableros (B2B)":
     st.header("Panel de Control Organizacional (B2B)")
     st.markdown("Monitoreo ejecutivo de licencias corporativas y desarrollo estratégico de la red.")
 
-    sub_tab1, sub_tab2 = st.tabs(["💬 FEEDBACK Y RED DE OBSERVADORES", "🕸️ ANÁLISIS DE REDES ORGANIZACIONALES (ONA)"])
+    sub_tab1, sub_tab2, sub_tab3 = st.tabs([
+        "💬 FEEDBACK Y RED DE OBSERVADORES", 
+        "🕸️ ANÁLISIS DE REDES (ONA)", 
+        "🔮 PROYECCIÓN Y TENDENCIA CULTURAL (5 AÑOS)"
+    ])
 
     with sub_tab1:
         st.markdown("<br>", unsafe_allow_html=True)
@@ -572,6 +576,40 @@ elif st.session_state.current_module == "Administración de Tableros (B2B)":
             lanzar_ona = st.form_submit_button("Generar y Desplegar Cuestionario ONA")
             if lanzar_ona:
                 st.success(f"¡Cuestionario ONA configurado y listo para distribuirse en el área '{ona_area}'!")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with sub_tab3:
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown('<div class="module-card">', unsafe_allow_html=True)
+        st.subheader("🔮 Análisis Prospectivo y Tendencia Cultural (Horizonte 5 Años)")
+        st.markdown("""
+        Evaluación sistémica basada en la lógica de proyección de Apps Script. Analiza cómo se visualizan y aspiran los colaboradores en el mediano plazo para impulsar rediseños culturales y sistémicos en la organización.
+        """)
+
+        with st.form("form_prospectiva"):
+            col_p1, col_p2 = st.columns(2)
+            with col_p1:
+                colab_prosp = st.selectbox("Colaborador / Talento evaluado", ["María Gómez", "Carlos Ruiz", "Lucía Fernández", "Esteban Torres"], key="prosp_colab")
+                horizonte_aspiracion = st.selectbox("Eje de Aspiración a 5 Años", [
+                    "Liderazgo de Unidades Estratégicas / Negocio",
+                    "Especialización Técnica / Innovación Disruptiva",
+                    "Transformación Cultural y Gestión del Cambio",
+                    "Mentoría, Facilitación y Desarrollo de Equipos"
+                ])
+            with col_p2:
+                impacto_sistemico = st.select_slider("Impacto Sistémico Proyectado", options=["Local / Operativo", "Transversal / Táctico", "Global / Estratégico"], value="Transversal / Táctico")
+                nivel_alineacion = st.select_slider("Alineación con el Propósito Cultural", options=["En transición", "Alineado", "Agente Cultural / Catalizador"], value="Alineado")
+            
+            st.text_area("Notas cualitativas sobre la proyección de futuro y requerimientos sistémicos", 
+                         value="El colaborador expresa la necesidad de transicionar hacia roles de liderazgo facilitador, requiriendo un acompañamiento en competencias conversacionales de segundo orden.")
+            
+            sincronizar_prosp = st.form_submit_button("Procesar Tendencia y Sincronizar Apps Script")
+            if sincronizar_prosp:
+                st.success(f"¡Tendencia prospectiva de {colab_prosp} procesada y sincronizada! Registrada para el plan de evolución cultural a 5 años.")
+        
+        st.markdown("---")
+        st.markdown("#### 🌐 Insights Sistémicos para la Toma de Decisiones")
+        st.info("El análisis agregado muestra que el 65% del talento clave aspira a roles de facilitación y transformación cultural. Se sugiere adaptar las políticas de sucesión interna hacia modelos de gestión basados en competencias conversacionales.")
         st.markdown('</div>', unsafe_allow_html=True)
 
 elif st.session_state.current_module == "Módulo 3: Coach en Línea":
