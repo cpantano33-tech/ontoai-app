@@ -69,9 +69,10 @@ if not st.session_state.accepted_terms:
         st.markdown(
             """
         <div class="banner-legal">
-            <strong>ATENCIÓN:</strong><br><br>
-            DIALECTA ES UN SIMULADOR CONVERSACIONAL CUYO OBJETIVO ES, A TRAVÉS DEL APRENDIZAJE SIMULADO, LO QUE TE PERMITE PRACTICAR, Y EQUIVOCARTE EN UN ENTORNO SEGURO Y LIBRE DE JUICIOS O CRITICAS, DE ESTA MANERA PLANIFICAS TUS CONVERSACIONES Y TE DISPONES CON MEJOR PREPARACIÓN PARA ALCANZAR MEJORES RESULTADOS.<br><br>
-            DIALECTA NO BUSCA DIRIGIR EL RESULTADO DE TUS INTERACCIONES, YA QUE ESTAS SON RESPONSABILIDAD HUMANA Y/U ORGANIZACIONAL.
+            <strong>BIENVENIDO A DIALECTA,</strong><br><br>
+            el simulador conversacional que te permite, a traves del aprendizaje simulado, practicar y diseñar conversaciones de 1° orden, buscando mejorar tus habilidades genericas conversacionaels, al mismo tiempo que podras practicar diseñarlas buscando impactar en los resultados.<br><br>
+            <strong>IMPORTANTE:</strong> DIALECTA NO BUSCA DIRIGIR TUS CONVERSACIONES YA QUE ESTAS SON RESPONSABILIDAD HUMANA Y U ORGANIZACIONAL.<br><br>
+            <strong>RECUERDA:</strong> la practica hace al maestro!
         </div>
         """,
             unsafe_allow_html=True,
@@ -181,7 +182,7 @@ if st.session_state.current_module == "Módulo 1: Diseño":
         st.session_state.messages_mod1.append(
             {
                 "role": "assistant",
-                "content": "¡Hola! Soy Dialecta. Para comenzar a diseñar tu conversación, ¿con quién necesitas hablar y qué situación puntual generó esta necesidad?",
+                "content": "Hola!, soy tu coach virtual. Para comenzar a diseñar nuestra conversación, es importante que me de el contexto y me cuentes que te inquieta hoy y que esperas lograr.",
             }
         )
 
